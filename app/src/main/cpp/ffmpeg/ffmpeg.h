@@ -19,7 +19,6 @@
 #ifndef FFTOOLS_FFMPEG_H
 #define FFTOOLS_FFMPEG_H
 
-#include "config.h"
 
 #include <stdint.h>
 #include <stdio.h>

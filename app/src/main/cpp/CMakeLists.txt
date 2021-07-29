@@ -9,8 +9,8 @@ project("ffmpegcmd")
 set(ffmpeg_lib_dir ../../../../libs/${CMAKE_ANDROID_ARCH_ABI}/libffmpeg.so)
 
 # 2. 添加头文件目录
-include_directories(src/main/cpp)
-include_directories(src/main/cpp/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ffmpeg)
 #适配不同架构的include文件
 if(${CMAKE_ANDROID_ARCH_ABI} MATCHES "armeabi-v7a")
     include_directories(src/main/cpp/include/armeabi-v7a)
@@ -43,8 +43,8 @@ add_library( # Sets the name of the library.
              SHARED
 
              # Provides a relative path to your source file(s).
-             src/main/cpp/ffmpeg/ffmpeg.c
-
+               ${CMAKE_CURRENT_SOURCE_DIR}/ffmpeg/ffmpeg.c
+               ${CMAKE_CURRENT_SOURCE_DIR}/ffmpeg/ffmpeg_cmd.c
               )
 
 # Searches for a specified prebuilt library and stores the path as a

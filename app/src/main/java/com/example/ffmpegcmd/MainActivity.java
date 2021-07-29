@@ -89,5 +89,4 @@ public class MainActivity extends AppCompatActivity {
         mMainAdapterRV.setList(mList);
     }
 
-    private native String stringFromJNI();
 }
