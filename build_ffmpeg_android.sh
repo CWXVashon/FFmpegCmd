@@ -150,17 +150,10 @@ build() {
 package_library() {
   echo "多个库打包开始"
   # 调用链接器进行打包
-  $TOOLCHAIN/bin/$ARCH1-linux-$ANDROID-ld -rpath-link=$SYSROOT_L/$API \
-    -L$SYSROOT_L/$API -L$OUTPUT/lib -L$GCC_L -soname libffmpeg.so \
+  $TOOLCHAIN/bin/$ARCH1-linux-$ANDROID-ld -L$OUTPUT/lib -L$GCC_L \
+    -rpath-link=$SYSROOT_L/$API -L$SYSROOT_L/$API -soname libffmpeg.so \
     -shared -nostdlib -Bsymbolic --whole-archive --no-undefined -o $OUTPUT/libffmpeg.so \
-    $OUTPUT/lib/libavcodec.a \
-    $OUTPUT/lib/libpostproc.a \
-    $OUTPUT/lib/libavfilter.a \
-    $OUTPUT/lib/libswresample.a \
-    $OUTPUT/lib/libavformat.a \
-    $OUTPUT/lib/libavutil.a \
-    $OUTPUT/lib/libswscale.a \
-    $GCC_L/libgcc.a \
+    -lavcodec -lpostproc -lavfilter -lswresample -lavformat -lavutil -lswscale -lgcc \
     -lc -ldl -lm -lz -llog \
     --dynamic-linker=/system/bin/linker
     # 设置动态链接器，不同平台的不同，android 使用的是 /system/bin/linker
