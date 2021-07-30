@@ -134,7 +134,7 @@ package_library() {
   echo "多个库打包开始"
   # 调用链接器进行打包
   $TOOLCHAIN/bin/$ARCH1-linux-$ANDROID-ld -rpath-link=$SYSROOT_L/$API \
-    -L$SYSROOT_L/$API -L$OUTPUT/lib -L$GCC_L \
+    -L$SYSROOT_L/$API -L$OUTPUT/lib -L$GCC_L -soname libffmpeg.so \
     -shared -nostdlib -Bsymbolic --whole-archive --no-undefined -o $OUTPUT/libffmpeg.so \
     $OUTPUT/lib/libavcodec.a \
     $OUTPUT/lib/libpostproc.a \
@@ -161,7 +161,7 @@ for i in "$@"; do
     2) 
     init_arm32 
     package_params
-    #build
+    build
     package_library
     ;;
     3) 

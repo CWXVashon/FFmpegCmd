@@ -243,6 +243,9 @@ typedef struct AVCodec {
      *****************************************************************
      */
     int priv_data_size;
+#if FF_API_NEXT
+    struct AVCodec *next;
+#endif
     /**
      * @name Frame-level threading support functions
      * @{
@@ -255,11 +258,6 @@ typedef struct AVCodec {
      * dst and src will (rarely) point to the same context, in which case memcpy should be skipped.
      */
     int (*update_thread_context)(struct AVCodecContext *dst, const struct AVCodecContext *src);
-
-    /**
-     * Copy variables back to the user-facing context
-     */
-    int (*update_thread_context_for_user)(struct AVCodecContext *dst, const struct AVCodecContext *src);
     /** @} */
 
     /**
@@ -367,7 +365,7 @@ const AVCodec *av_codec_iterate(void **opaque);
  * @param id AVCodecID of the requested decoder
  * @return A decoder if one was found, NULL otherwise.
  */
-const AVCodec *avcodec_find_decoder(enum AVCodecID id);
+AVCodec *avcodec_find_decoder(enum AVCodecID id);
 
 /**
  * Find a registered decoder with the specified name.
@@ -375,7 +373,7 @@ const AVCodec *avcodec_find_decoder(enum AVCodecID id);
  * @param name name of the requested decoder
  * @return A decoder if one was found, NULL otherwise.
  */
-const AVCodec *avcodec_find_decoder_by_name(const char *name);
+AVCodec *avcodec_find_decoder_by_name(const char *name);
 
 /**
  * Find a registered encoder with a matching codec ID.
@@ -383,7 +381,7 @@ const AVCodec *avcodec_find_decoder_by_name(const char *name);
  * @param id AVCodecID of the requested encoder
  * @return An encoder if one was found, NULL otherwise.
  */
-const AVCodec *avcodec_find_encoder(enum AVCodecID id);
+AVCodec *avcodec_find_encoder(enum AVCodecID id);
 
 /**
  * Find a registered encoder with the specified name.
@@ -391,7 +389,7 @@ const AVCodec *avcodec_find_encoder(enum AVCodecID id);
  * @param name name of the requested encoder
  * @return An encoder if one was found, NULL otherwise.
  */
-const AVCodec *avcodec_find_encoder_by_name(const char *name);
+AVCodec *avcodec_find_encoder_by_name(const char *name);
 /**
  * @return a non-zero number if codec is an encoder, zero otherwise
  */
