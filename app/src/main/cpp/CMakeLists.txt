@@ -20,7 +20,9 @@ set(FFMPEG_CMD_SRC
         ${FFMPEG_CMD_DIR}/ffmpeg.c
         ${FFMPEG_CMD_DIR}/ffmpeg_filter.c
         ${FFMPEG_CMD_DIR}/ffmpeg_hw.c
-        ${FFMPEG_CMD_DIR}/ffmpeg_opt.c)
+        ${FFMPEG_CMD_DIR}/ffmpeg_opt.c
+        ${FFMPEG_CMD_DIR}/ffmpeg_cmd.cpp
+        )
 add_library(ffmpeg_cmd SHARED ${FFMPEG_CMD_SRC})
 
 
