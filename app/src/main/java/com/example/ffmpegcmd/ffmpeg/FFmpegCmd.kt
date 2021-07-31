@@ -22,12 +22,12 @@ internal class FFmpegCmd private constructor(){
         ThreadPoolExecutor.executeSingleThreadPool(Runnable {
             handleListener.onStart()
             // call jni method
-            run(array)
+//            run(array)
             handleListener.onFinish()
         })
 
     }
 
-    private external fun run(array: Array<String?>?): Int
+//    private external fun run(array: Array<String?>?): Int
 
 }

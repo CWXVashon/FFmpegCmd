@@ -22,15 +22,14 @@ set(FFMPEG_CMD_SRC
         ${FFMPEG_CMD_DIR}/ffmpeg_hw.c
         ${FFMPEG_CMD_DIR}/ffmpeg_opt.c
         ${FFMPEG_CMD_DIR}/ffmpeg_cmd.cpp
+        ${FFMPEG_CMD_DIR}/ffmpeg_api.cpp
         )
-add_library(ffmpeg_cmd SHARED ${FFMPEG_CMD_SRC})
-
-
+add_library(media_handle SHARED ${FFMPEG_CMD_SRC})
 
 find_library(log-lib log)
 
-
-target_link_libraries(ffmpeg_cmd
+target_link_libraries(
+        media_handle
         android
         lib_ffmpeg
         ${log-lib})
