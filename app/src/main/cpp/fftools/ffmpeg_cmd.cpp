@@ -15,5 +15,6 @@ Java_com_example_ffmpegcmd_ffmpeg_FFmpegCmd_run(JNIEnv *env, jobject thiz, jobje
         auto js = (jstring) env->GetObjectArrayElement(array, i);
         argv[i] = (char *) env->GetStringUTFChars(js, 0);
     }
-    return run(argc, argv);
+    //return run(argc, argv);
+	return 0;
 }
