@@ -30,6 +30,7 @@ Java_com_example_ffmpegcmd_ffmpeg_FFmpegApi_open(JNIEnv *env, jobject thiz, jstr
     }
     video_stream_idx = av_find_best_stream(ic, AVMEDIA_TYPE_VIDEO, -1, -1, NULL, 0);
     return 0;
+
 }
 
 extern "C"
