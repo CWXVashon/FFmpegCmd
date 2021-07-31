@@ -9,9 +9,13 @@ class FFmpegApi {
      * 打开视频流文件
      * @param url 视频文件路径
      * */
-    external fun open(url: String)
+    external fun open(url: String): Int
 
+    external fun getWidth(): Int
 
+    external fun getHeight(): Int
+
+    external fun getDuration(): Int
 
 
 
