@@ -71,7 +71,7 @@ init_x86() {
   CPU=i686
   PRE_CFLAGS="-march=$CPU -mtune=intel -mssse3 -mfpmath=sse -m32"
   GCC_L=$NDK/toolchains/$ABI-4.9/prebuilt/$OS_TYPE-x86_64/lib/gcc/$ARCH1-linux-$ANDROID/4.9.x
-  # x86 架构必须设置这样，因为移出了寄存器，enable 回导致编译不通过
+  # x86 架构必须设置这样，因为移除了寄存器，enable 会导致编译不通过
   ASM_SWITCH='--disable-asm'
 }
 
@@ -96,8 +96,8 @@ build() {
   --sysroot=$TOOLCHAIN/sysroot \
   --enable-cross-compile \
   --enable-neon \
+  --enable-hwaccels \
   $ASM_SWITCH \
-  --pkg-config=/usr/local/Cellar/pkg-config/0.29.2_3/bin/pkg-config \
   --enable-small \
   --enable-avcodec \
   --enable-avformat \
@@ -106,16 +106,33 @@ build() {
   --enable-swscale \
   --enable-avfilter \
   --enable-postproc \
+  --enable-network \
+  --enable-bsfs \
+  --enable-postproc \
+  --enable-filters \
+  --enable-encoders \
   --enable-gpl \
+  --enable-muxers \
+  --enable-parsers \
+  --enable-protocols \
+  --enable-jni \
+  --enable-mediacodec \
+  --enable-decoder=mjpeg,mpeg4,h263,h264,flv,hevc,wmv3,msmpeg4v3,msmpeg4v2,msvideo1,vc1,mpeg1video,mpeg2video,aac,ac3,ac3_fixed,m4a,amrnb,amrwb,vorbis,wmav2,truehd,tscc,tscc2,dvvideo,msrle,cinepak,indeo5,vp8,vp9,mp3float,mp3,mp3adufloat,mp3adu,mp3on4float,mp3on4,aac_fixed,aac_latm,eac3,png,wmav1,wmv1,wmv2,pcm_alaw,pcm_dvd,pcm_f16le,pcm_f24le,pcm_f32be,pcm_f32le,pcm_f64be,pcm_f64le,zlib,flac,opus,mlp,pcm_s16be,pcm_s16le,pcm_s24be,pcm_s24le,pcm_s32be,pcm_s32le,pcm_s64be,pcm_s64le,pcm_mulaw,alac,adpcm_ms,pcm_u16be,pcm_u16le,pcm_u24be,pcm_u24le,pcm_u32be,pcm_u32le,pcm_vidc,pcm_zork,adpcm_ima_qt,adpcm_ima_wav,gif,hevc_mediacodec,mpeg4_mediacodec,vp9_mediacodec \
+  --enable-demuxer=aac,ac3,alaw,amr,amrnb,amrwb,ape,asf,asf_o,avi,cavsvideo,codec2,concat,dnxhd,eac3,flac,flv,gif,gif_pipe,h263,h264,hevc,hls,image2,image2pipe,jpeg_pipe,lrc,m4v,matroska,webm,mjpeg,mov,mp4,m4a,3gp,mp3,mpeg,mpegts,mv,ogg,png_pipe,realtext,rm,rtp,rtsp,pcm_s16be,pcm_s16le,pcm_s32be,pcm_s32le,sdp,srt,swf,vc1,wav,webm_dash,manifest,xmv,pcm_f32be,pcm_f32le,pcm_f64be,pcm_f64le,mpegvideo,mulaw,sami,srt \
   --enable-static \
   --disable-shared \
   --disable-doc \
   --disable-avdevice \
+  --disable-avresample \
   --disable-ffmpeg \
   --disable-ffplay \
   --disable-ffprobe \
   --disable-debug \
   --disable-symver \
+  --disable-indevs \
+  --disable-outdevs \
+  --disable-decoders \
+  --disable-demuxers \
   --extra-cflags="$EXTRA_CFLAGS" \
   --extra-ldflags="$EXTRA_LDFLAGS" \
   --cc=$TOOLCHAIN/bin/$ARCH2-linux-$ANDROID$API-clang \
@@ -133,17 +150,10 @@ build() {
 package_library() {
   echo "多个库打包开始"
   # 调用链接器进行打包
-  $TOOLCHAIN/bin/$ARCH1-linux-$ANDROID-ld -rpath-link=$SYSROOT_L/$API \
-    -L$SYSROOT_L/$API -L$OUTPUT/lib -L$GCC_L -soname libffmpeg.so \
+  $TOOLCHAIN/bin/$ARCH1-linux-$ANDROID-ld -L$OUTPUT/lib -L$GCC_L \
+    -rpath-link=$SYSROOT_L/$API -L$SYSROOT_L/$API -soname libffmpeg.so \
     -shared -nostdlib -Bsymbolic --whole-archive --no-undefined -o $OUTPUT/libffmpeg.so \
-    $OUTPUT/lib/libavcodec.a \
-    $OUTPUT/lib/libpostproc.a \
-    $OUTPUT/lib/libavfilter.a \
-    $OUTPUT/lib/libswresample.a \
-    $OUTPUT/lib/libavformat.a \
-    $OUTPUT/lib/libavutil.a \
-    $OUTPUT/lib/libswscale.a \
-    $GCC_L/libgcc.a \
+    -lavcodec -lpostproc -lavfilter -lswresample -lavformat -lavutil -lswscale -lgcc \
     -lc -ldl -lm -lz -llog \
     --dynamic-linker=/system/bin/linker
     # 设置动态链接器，不同平台的不同，android 使用的是 /system/bin/linker
