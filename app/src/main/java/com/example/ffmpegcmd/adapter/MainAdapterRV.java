@@ -1,4 +1,4 @@
-package com.example.ffmpegcmd;
+package com.example.ffmpegcmd.adapter;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,8 +8,12 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
-import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.ffmpegcmd.bean.MainDividerBean;
+import com.example.ffmpegcmd.bean.MainItemBean;
+import com.example.ffmpegcmd.bean.MainTitleBean;
+import com.example.ffmpegcmd.R;
 
 public class MainAdapterRV extends RecyclerView.Adapter {
 

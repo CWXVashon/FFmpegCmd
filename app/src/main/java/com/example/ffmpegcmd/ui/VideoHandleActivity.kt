@@ -1,4 +1,4 @@
-package com.example.ffmpegcmd
+package com.example.ffmpegcmd.ui
 
 import android.annotation.SuppressLint
 import android.os.Bundle

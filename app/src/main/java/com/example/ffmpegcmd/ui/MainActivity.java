@@ -1,4 +1,4 @@
-package com.example.ffmpegcmd;
+package com.example.ffmpegcmd.ui;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.DefaultItemAnimator;
@@ -7,8 +7,12 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.Toast;
 
+import com.example.ffmpegcmd.adapter.MainAdapterRV;
+import com.example.ffmpegcmd.bean.MainDividerBean;
+import com.example.ffmpegcmd.bean.MainItemBean;
+import com.example.ffmpegcmd.bean.MainTitleBean;
+import com.example.ffmpegcmd.R;
 import com.example.ffmpegcmd.databinding.ActivityMainBinding;
 
 import java.util.ArrayList;

@@ -1,4 +1,4 @@
-package com.example.ffmpegcmd;
+package com.example.ffmpegcmd.bean;
 
 public class MainItemBean {
 
