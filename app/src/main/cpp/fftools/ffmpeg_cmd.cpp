@@ -14,12 +14,15 @@ extern "C" {
 typedef struct tick_context {
     jclass ffmpegCmdClz;
     jmethodID progressMID;
+    jmethodID messageMID;
     JNIEnv *env;
 } TickContext;
 TickContext globalCtx;
 
-//Java_com_example_ffmpegcmd_ffmpeg_FFmpegCmd_run(JNIEnv *env, jobject thiz, jobjectArray array) {
-JNIEXPORT jint JNICALL cmdRun(JNIEnv *env, jobject thiz, jobjectArray array) {
+void log_callback(void*, int, const char*, va_list);
+
+JNIEXPORT jint JNICALL
+cmdRun(JNIEnv *env, jobject thiz, jobjectArray array) {
     int argc = env->GetArrayLength(array);
     char *argv[argc];
     int i;
@@ -30,7 +33,8 @@ JNIEXPORT jint JNICALL cmdRun(JNIEnv *env, jobject thiz, jobjectArray array) {
     return run(argc, argv);
 }
 
-JNIEXPORT void JNICALL cancelTaskJNI(JNIEnv *env, jobject thiz, jint cancel) {
+JNIEXPORT void JNICALL
+cancelTaskJNI(JNIEnv *env, jobject thiz, jint cancel) {
     cancelTask(cancel);
 }
 
@@ -38,6 +42,36 @@ JNIEXPORT void JNICALL cancelTaskJNI(JNIEnv *env, jobject thiz, jint cancel) {
 void progressCallback(int position, int duration, int state) {
     if (globalCtx.env) {
         globalCtx.env->CallStaticVoidMethod(globalCtx.ffmpegCmdClz, globalCtx.progressMID, position, duration, state);
+    }
+}
+
+void msg_callback(const char* format, va_list args) {
+    if (globalCtx.env) {
+        char *ff_msg = (char*) malloc(sizeof(char) * 1024);
+        vsprintf(ff_msg, format, args);
+        jstring jstr = globalCtx.env->NewStringUTF(ff_msg);
+        globalCtx.env->CallStaticVoidMethod(globalCtx.ffmpegCmdClz, globalCtx.messageMID, jstr);
+        free(ff_msg);
+    }
+}
+
+void log_callback(void* ptr, int level, const char* format, va_list args) {
+    switch (level) {
+        case AV_LOG_WARNING:
+            XLOGD(format, args);
+            break;
+        case AV_LOG_INFO:
+            XLOGD(format, args);
+            if (format && strncmp("silence", format, 7) == 0) {
+                msg_callback(format, args);
+            }
+            break;
+        case AV_LOG_ERROR:
+            XLOGE(format, args);
+            msg_callback(format, args);
+            break;
+        default:
+            break;
     }
 }
 
@@ -50,7 +84,7 @@ void progressCallback(int position, int duration, int state) {
 #define NATIVE_FFMPEG_CMD_CLASS_NAME "com/example/ffmpegcmd/ffmpeg/FFmpegCmd"
 
 static JNINativeMethod ffmpegCmdMethods[] = {
-        // 函数名，函数签名，函数指针 
+        // 函数名，函数签名，函数指针
         {"cmdRun", "([Ljava/lang/String;)I", (void *) cmdRun},
         {"cancelTaskJNI", "(I)V", (void *) cancelTaskJNI}
 };
@@ -81,6 +115,13 @@ void queryRuntimeInfo(JNIEnv *env) {
         return;
     }
     globalCtx.progressMID = progressFunc;
+
+    jmethodID messageFunc = env->GetStaticMethodID(globalCtx.ffmpegCmdClz, "onMsgCallback", "(Ljava/lang/String;)V");
+    if (!messageFunc) {
+        XLOGE("查询回调信息函数失败，错误代码行数：%d", __LINE__);
+        return;
+    }
+    globalCtx.messageMID = messageFunc;
 }
 
 // 加载动态库时，自动运行
@@ -124,6 +165,7 @@ JNIEXPORT void JNI_OnUnload(JavaVM *vm, void *reserved) {
     env->DeleteGlobalRef(globalCtx.ffmpegCmdClz);
     globalCtx.ffmpegCmdClz = NULL;
     globalCtx.progressMID = NULL;
+    globalCtx.messageMID = NULL;
     globalCtx.env = NULL;
 }
 

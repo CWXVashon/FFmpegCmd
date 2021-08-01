@@ -27,12 +27,20 @@ internal class FFmpegCmd private constructor(){
                 val progress = position * 100 / duration;
                 if (progress < 100 || state == 2 || state == 3) {
                     // TODO: 2021/8/1 进度回调
-                    // progressListener.onProgress(progress, duration);
+                    // handleListener.onProgress(progress, duration);
                 }
             } else {
                 // TODO: 2021/8/1 进度回调
-                // progressListener.onProgress(position, duration);
+                // handleListener.onProgress(position, duration);
             }
+        }
+
+        /**
+         * JNI 层自动回调这里
+         */
+        fun onMsgCallback(msg: String) {
+            // TODO: 2021/8/1 信息回调
+            // handleListener.onMessage(msg);
         }
     }
 
@@ -43,6 +51,7 @@ internal class FFmpegCmd private constructor(){
             // call jni method
             cmdRun(array)
             handleListener.onFinish()
+            cancelTaskJNI(0);
         })
 
     }
