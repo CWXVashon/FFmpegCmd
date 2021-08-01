@@ -679,8 +679,21 @@ int hw_device_setup_for_filter(FilterGraph *fg);
 
 int hwaccel_decode_init(AVCodecContext *avctx);
 
-// Change by Vashon on 2021/7/30 9:57
-// 下面开始是自己定义的函数
+
+// TODO:下面开始是自己定义的东西
+
+
 int run(int argc, char **argv);
+// 进度回调的状态
+enum ProgressState {
+    STATE_INIT,
+    STATE_RUNNING,
+    STATE_FINISH,
+    STATE_ERROR
+};
+// 进度回调，实现在 jni 回调文件中
+void progressCallback(int position, int duration, int state);
+// 取消运行中的任务
+void cancelTask(int cancel);
 
 #endif /* FFTOOLS_FFMPEG_H */

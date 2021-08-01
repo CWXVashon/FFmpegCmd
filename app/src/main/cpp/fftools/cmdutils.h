@@ -34,6 +34,11 @@
 #undef main /* We don't want SDL to override our main() */
 #endif
 
+// TODO: ---------- 这些都是自己新增的 ----------
+#include <setjmp.h>
+extern jmp_buf jmpBuf;
+// TODO: ---------- 这些都是自己新增的 ----------
+
 /**
  * program name, defined by the program for show_version().
  */
