@@ -50,8 +50,8 @@ void progressCallback(int position, int duration, int state) {
 #define NATIVE_FFMPEG_CMD_CLASS_NAME "com/example/ffmpegcmd/ffmpeg/FFmpegCmd"
 
 static JNINativeMethod ffmpegCmdMethods[] = {
-        // 函数名，函数签名，函数指针 java.lang.reflect
-        {"cmdRun", "(Ljava/lang/reflect/Array;)I", (void *) cmdRun},
+        // 函数名，函数签名，函数指针 
+        {"cmdRun", "([Ljava/lang/String;)I", (void *) cmdRun},
         {"cancelTaskJNI", "(I)V", (void *) cancelTaskJNI}
 };
 
