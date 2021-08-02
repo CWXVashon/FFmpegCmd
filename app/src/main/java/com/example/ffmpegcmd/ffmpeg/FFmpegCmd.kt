@@ -15,33 +15,6 @@ internal class FFmpegCmd private constructor(){
         init {
             System.loadLibrary("ffmpeg-cmd")
         }
-
-        /**
-         * JNI 层自动回调这里，state：0-初始化，1-运行中，2-运行结束，3-运行错误
-         */
-        fun onProgressCallback(position: Int, duration: Int, state: Int) {
-            if (duration in 1 until position) {
-                return;
-            }
-            if (position > 0 && duration > 0) {
-                val progress = position * 100 / duration;
-                if (progress < 100 || state == 2 || state == 3) {
-                    // TODO: 2021/8/1 进度回调
-                    // handleListener.onProgress(progress, duration);
-                }
-            } else {
-                // TODO: 2021/8/1 进度回调
-                // handleListener.onProgress(position, duration);
-            }
-        }
-
-        /**
-         * JNI 层自动回调这里
-         */
-        fun onMsgCallback(msg: String) {
-            // TODO: 2021/8/1 信息回调
-            // handleListener.onMessage(msg);
-        }
     }
 
 

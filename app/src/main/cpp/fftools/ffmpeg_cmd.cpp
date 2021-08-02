@@ -13,6 +13,7 @@ extern "C" {
 // 用于进度回调的结构体
 typedef struct tick_context {
     jclass ffmpegCmdClz;
+    jobject ffmpegCmdObj;
     jmethodID progressMID;
     jmethodID messageMID;
     JNIEnv *env;
@@ -23,6 +24,7 @@ void log_callback(void*, int, const char*, va_list);
 
 JNIEXPORT jint JNICALL
 cmdRun(JNIEnv *env, jobject thiz, jobjectArray array) {
+    globalCtx.env = env;
     int argc = env->GetArrayLength(array);
     char *argv[argc];
     int i;
@@ -40,17 +42,18 @@ cancelTaskJNI(JNIEnv *env, jobject thiz, jint cancel) {
 
 // native -> java 进度回调
 void progressCallback(int position, int duration, int state) {
-    if (globalCtx.env) {
-        globalCtx.env->CallStaticVoidMethod(globalCtx.ffmpegCmdClz, globalCtx.progressMID, position, duration, state);
+    if (globalCtx.env && globalCtx.progressMID) {
+        globalCtx.env->CallVoidMethod(globalCtx.ffmpegCmdObj, globalCtx.progressMID, position, duration, state);
     }
 }
 
 void msg_callback(const char* format, va_list args) {
-    if (globalCtx.env) {
+    if (globalCtx.env && globalCtx.messageMID) {
         char *ff_msg = (char*) malloc(sizeof(char) * 1024);
         vsprintf(ff_msg, format, args);
         jstring jstr = globalCtx.env->NewStringUTF(ff_msg);
-        globalCtx.env->CallStaticVoidMethod(globalCtx.ffmpegCmdClz, globalCtx.messageMID, jstr);
+        globalCtx.env->CallVoidMethod(globalCtx.ffmpegCmdObj, globalCtx.messageMID, jstr);
+        globalCtx.env->DeleteLocalRef(jstr);
         free(ff_msg);
     }
 }
@@ -81,7 +84,8 @@ void log_callback(void* ptr, int level, const char* format, va_list args) {
 // 2.方便库的迁移，如果库用在不同的包中，只需修改对应的宏即可，无需改变函数名
 // 3.有时候通过包名形式的函数名映射会发生莫名奇妙的映射失败情况
 
-#define NATIVE_FFMPEG_CMD_CLASS_NAME "com/example/ffmpegcmd/ffmpeg/FFmpegCmd"
+//#define NATIVE_FFMPEG_CMD_CLASS_NAME "com/example/ffmpegcmd/ffmpeg/FFmpegCmd"
+#define NATIVE_FFMPEG_CMD_CLASS_NAME "com/example/ffmpegcmd/ffmpegjava/FFmpegCmd"
 
 static JNINativeMethod ffmpegCmdMethods[] = {
         // 函数名，函数签名，函数指针
@@ -96,7 +100,11 @@ jint RegisterNativeMethods(JNIEnv *env, const char *className, JNINativeMethod *
         return JNI_ERR;
     if (env->RegisterNatives(clazz, methods, methodNum) != JNI_OK)
         return JNI_ERR;
+    // 保存需要回调的 Java 类的信息
     globalCtx.ffmpegCmdClz = static_cast<jclass>(env->NewGlobalRef(clazz));
+    jmethodID ffmpegCmdCtor = env->GetMethodID(globalCtx.ffmpegCmdClz, "<init>", "()V");
+    jobject ffmpegCmd = env->NewObject(globalCtx.ffmpegCmdClz, ffmpegCmdCtor);
+    globalCtx.ffmpegCmdObj = env->NewGlobalRef(ffmpegCmd);
     return JNI_OK;
 }
 
@@ -109,14 +117,14 @@ void UnregisterNativeMethods(JNIEnv *env, const char *className) {
 
 // 将需要回调的函数查询并保存下来
 void queryRuntimeInfo(JNIEnv *env) {
-    jmethodID progressFunc = env->GetStaticMethodID(globalCtx.ffmpegCmdClz, "onProgressCallback", "(III)V");
+    jmethodID progressFunc = env->GetMethodID(globalCtx.ffmpegCmdClz, "onProgressCallback", "(III)V");
     if (!progressFunc) {
         XLOGE("查询回调进度函数失败，错误代码行数：%d", __LINE__);
         return;
     }
     globalCtx.progressMID = progressFunc;
 
-    jmethodID messageFunc = env->GetStaticMethodID(globalCtx.ffmpegCmdClz, "onMsgCallback", "(Ljava/lang/String;)V");
+    jmethodID messageFunc = env->GetMethodID(globalCtx.ffmpegCmdClz, "onMsgCallback", "(Ljava/lang/String;)V");
     if (!messageFunc) {
         XLOGE("查询回调信息函数失败，错误代码行数：%d", __LINE__);
         return;
@@ -130,11 +138,8 @@ JNIEXPORT jint JNI_OnLoad(JavaVM *vm, void *reserved) {
     JNIEnv *env;
     jint jniRet = vm->GetEnv((void **) &env, JNI_VERSION_1_6);
 
-    if (jniRet != JNI_OK) {
+    if (jniRet != JNI_OK)
         return jniRet;
-    }
-    // 这里可能有问题，将 env 保存下来，如果后续出问题，那么这里就不保存了，在每次 native 函数调用的时候才保存
-    globalCtx.env = env;
 
     jniRet = RegisterNativeMethods(
             env,
@@ -163,7 +168,9 @@ JNIEXPORT void JNI_OnUnload(JavaVM *vm, void *reserved) {
     UnregisterNativeMethods(env, NATIVE_FFMPEG_CMD_CLASS_NAME);
 
     env->DeleteGlobalRef(globalCtx.ffmpegCmdClz);
+    env->DeleteGlobalRef(globalCtx.ffmpegCmdObj);
     globalCtx.ffmpegCmdClz = NULL;
+    globalCtx.ffmpegCmdObj = NULL;
     globalCtx.progressMID = NULL;
     globalCtx.messageMID = NULL;
     globalCtx.env = NULL;
