@@ -41,7 +41,6 @@ public class FFmpegCmd {
             public void run() {
                 if (handleListener != null) {
                     handleListener.onStart();
-                    // call jni method
                     cmdRun(commands);
                     handleListener.onFinish();
                 }

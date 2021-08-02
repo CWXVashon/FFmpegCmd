@@ -10,7 +10,7 @@ extern "C" {
 // Created by  wangchao on 2021/7/30.
 //
 
-// 用于进度回调的结构体
+// 用于信息回调的结构体
 typedef struct tick_context {
     jclass ffmpegCmdClz;
     jobject ffmpegCmdObj;

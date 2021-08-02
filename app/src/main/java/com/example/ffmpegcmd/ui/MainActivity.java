@@ -42,7 +42,12 @@ public class MainActivity extends AppCompatActivity {
         mMainAdapterRV = new MainAdapterRV(new MainAdapterRV.OnItemClickListener() {
             @Override
             public void onItemClick(String name) {
-                Log.e("------------------", name);
+                switch (name) {
+                    case "视频编辑":
+                        VideoHandleActivity_Java.start(MainActivity.this);
+                        break;
+                    default:
+                }
             }
         });
         recyclerView.setAdapter(mMainAdapterRV);
