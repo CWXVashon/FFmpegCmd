@@ -5,6 +5,7 @@ import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -45,6 +46,10 @@ public class MainActivity extends AppCompatActivity {
                 switch (name) {
                     case "视频编辑":
                         VideoHandleActivity_Java.start(MainActivity.this);
+                        break;
+                    case "测试":
+                        Intent intent = new Intent(MainActivity.this, TestActivity.class);
+                        startActivity(intent);
                         break;
                     default:
                 }
@@ -91,6 +96,7 @@ public class MainActivity extends AppCompatActivity {
         itemList = new ArrayList<>();
         itemList.add(new MainItemBean("人像动漫", R.mipmap.ic_launcher_round));
         itemList.add(new MainItemBean("精美滤镜", R.mipmap.ic_launcher_round));
+        itemList.add(new MainItemBean("测试", R.mipmap.ic_launcher_round));
         mList.add(itemList);
 
         mList.add(new MainDividerBean());

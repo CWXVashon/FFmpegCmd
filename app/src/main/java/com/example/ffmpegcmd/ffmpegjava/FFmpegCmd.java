@@ -34,7 +34,7 @@ public class FFmpegCmd {
         System.loadLibrary("ffmpeg-cmd");
     }
 
-    void execute(String[] commands, OnHandleListener handleListener) {
+    public void execute(String[] commands, OnHandleListener handleListener) {
         mListener = handleListener;
         ThreadPoolExecutor.INSTANCE.executeSingleThreadPool(new Runnable() {
             @Override
@@ -50,6 +50,7 @@ public class FFmpegCmd {
 
     /**
      * native 层自动回调这个方法
+     *
      * @param state 0-初始化，1-运行中，2-运行结束，3-运行错误
      */
     @Keep
@@ -70,6 +71,7 @@ public class FFmpegCmd {
 
     /**
      * native 层自动回调这个方法
+     *
      * @param message
      */
     @Keep
