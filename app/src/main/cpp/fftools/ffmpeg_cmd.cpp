@@ -48,7 +48,6 @@ runFFmpeg(JNIEnv *env, jobject thiz, jobjectArray array) {
 
 JNIEXPORT jstring JNICALL
 runFFprobe(JNIEnv *env, jobject thiz, jobjectArray array) {
-    globalCtx.env = env;
     int argc = env->GetArrayLength(array);
     char *argv[argc];
     jstring jsa[argc];

@@ -907,4 +907,17 @@ object FFmpegUtils {
         command = String.format(command, src,url)
         return command.split(" ").toTypedArray()
     }
+
+    /**
+     * 使用 FFprobe 解析媒体格式
+     *
+     * @param inputPath  inputFile
+     * @return 得到媒体信息的 json 字符串
+     */
+    @JvmStatic
+    fun probeFormat(inputPath: String?): Array<String?> {
+        var ffprobeCmd = "ffprobe -i %s -show_streams -show_format -print_format json"
+        ffprobeCmd = String.format(Locale.getDefault(), ffprobeCmd, inputPath)
+        return ffprobeCmd.split(" ").toTypedArray()
+    }
 }
