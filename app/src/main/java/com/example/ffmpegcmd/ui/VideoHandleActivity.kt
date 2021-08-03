@@ -6,6 +6,8 @@ import android.os.Handler
 import android.os.Message
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import com.example.ffmpegcmd.BaseActivity
+import com.example.ffmpegcmd.R
 import com.example.ffmpegcmd.ffmpeg.FFmpegHandler
 import com.example.ffmpegcmd.util.FFmpegUtils
 

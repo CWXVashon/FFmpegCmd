@@ -31,7 +31,7 @@ public class FFmpegCmd {
     }
 
     static {
-        System.loadLibrary("ffmpeg-cmd");
+        System.loadLibrary("media_handle");
     }
 
     void executeFFmpeg(String[] commands, OnHandleListener handleListener) {
@@ -48,7 +48,7 @@ public class FFmpegCmd {
         });
     }
 
-    public String executeFFprobe(String[] commands) {
+    String executeFFprobe(String[] commands) {
         return runFFprobe(commands);
     }
 
