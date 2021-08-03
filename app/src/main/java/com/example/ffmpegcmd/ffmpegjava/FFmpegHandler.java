@@ -20,7 +20,7 @@ public class FFmpegHandler {
 
     public void executeFFmpegCmd(String[] commands) {
         if (mHandler != null) {
-            FFmpegCmd.getInstance().execute(commands, new OnHandleListener() {
+            FFmpegCmd.getInstance().executeFFmpeg(commands, new OnHandleListener() {
                 @Override
                 public void onStart() {
                     mHandler.obtainMessage(STATE_START).sendToTarget();

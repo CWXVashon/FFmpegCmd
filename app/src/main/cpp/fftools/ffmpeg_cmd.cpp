@@ -58,7 +58,6 @@ runFFprobe(JNIEnv *env, jobject thiz, jobjectArray array) {
         argv[i] = (char *) env->GetStringUTFChars(js, 0);
     }
     // 运行 ffprobe 命令行
-    //TODO:这里的 jsonStr 需要释放，否则用久了内存泄露，待完善
     char *jsonStr = run_ffprobe(argc, argv);
 
     // 释放资源，防止内存泄露
@@ -114,6 +113,10 @@ void log_callback(void *ptr, int level, const char *format, va_list args) {
     }
 }
 
+void releaseSource() {
+    release_source();
+}
+
 // ------------------------------------------------------------------ 华丽的分割线 ------------------------------------------------------------------
 // 弄成下面这样的自己手动注册本地函数的好处是：
 // 1.方便在任何地方写存放本地方法的类，因为只需通过定义一个宏即可，无需绑定函数名
@@ -126,6 +129,7 @@ void log_callback(void *ptr, int level, const char *format, va_list args) {
 static JNINativeMethod ffmpegCmdMethods[] = {
         // 函数名，函数签名，函数指针
         {"runFFmpeg",        "([Ljava/lang/String;)I", (void *) runFFmpeg},
+        {"runFFprobe",        "([Ljava/lang/String;)Ljava/lang/String;", (void *) runFFprobe},
         {"cancelTaskJNI", "(I)V",                   (void *) cancelTaskJNI}
 };
 
@@ -212,6 +216,7 @@ JNIEXPORT void JNI_OnUnload(JavaVM *vm, void *reserved) {
     globalCtx.progressMID = NULL;
     globalCtx.messageMID = NULL;
     globalCtx.env = NULL;
+    releaseSource();
 }
 
 #ifdef __cplusplus

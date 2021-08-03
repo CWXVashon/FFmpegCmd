@@ -34,7 +34,7 @@ public class FFmpegCmd {
         System.loadLibrary("ffmpeg-cmd");
     }
 
-    void execute(String[] commands, OnHandleListener handleListener) {
+    void executeFFmpeg(String[] commands, OnHandleListener handleListener) {
         mListener = handleListener;
         ThreadPoolExecutor.INSTANCE.executeSingleThreadPool(new Runnable() {
             @Override
@@ -46,6 +46,10 @@ public class FFmpegCmd {
                 }
             }
         });
+    }
+
+    public String executeFFprobe(String[] commands) {
+        return runFFprobe(commands);
     }
 
     /**
@@ -78,8 +82,11 @@ public class FFmpegCmd {
             mListener.onMessage(message);
     }
 
-    // 执行命令
+    // 执行 ffmpeg 命令
     private native int runFFmpeg(String[] commands);
+
+    // 执行 ffprobe 命令
+    private native String runFFprobe(String[] commands);
 
     // 取消进行中的任务，0：不取消，1：取消
     private native void cancelTaskJNI(int cancel);

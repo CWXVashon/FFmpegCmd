@@ -19,6 +19,10 @@
 #ifndef FFTOOLS_FFMPEG_H
 #define FFTOOLS_FFMPEG_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "config.h"
 
 #include <stdint.h>
@@ -695,5 +699,9 @@ enum ProgressState {
 void progress_callback(int position, int duration, int state);
 // 取消运行中的任务
 void cancel_task(int cancel);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* FFTOOLS_FFMPEG_H */
