@@ -43,4 +43,8 @@ public class FFmpegHandler {
             });
         }
     }
+
+    public String executeFFprobeCmd(String[] commands) {
+        return FFmpegCmd.getInstance().executeFFprobe(commands);
+    }
 }

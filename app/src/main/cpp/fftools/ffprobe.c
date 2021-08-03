@@ -80,8 +80,11 @@ typedef struct InputFile {
     int nb_streams;
 } InputFile;
 
-const char program_name[] = "ffprobe";
-const int program_birth_year = 2007;
+// TODO:------------ 冲突了，所以屏蔽掉 ------------
+const char ffprobe_program_name[] = "ffprobe";  // 冲突了，改名
+//const char program_name[] = "ffprobe";
+//const int program_birth_year = 2007;
+// TODO:------------ 冲突了，所以屏蔽掉 ------------
 
 static int do_bitexact = 0;
 static int do_count_frames = 0;
@@ -3253,7 +3256,7 @@ static int probe_file(WriterContext *wctx, const char *filename,
 
 static void show_usage(void) {
     av_log(NULL, AV_LOG_INFO, "Simple multimedia streams analyzer\n");
-    av_log(NULL, AV_LOG_INFO, "usage: %s [OPTIONS] [INPUT_FILE]\n", program_name);
+    av_log(NULL, AV_LOG_INFO, "usage: %s [OPTIONS] [INPUT_FILE]\n", ffprobe_program_name);
     av_log(NULL, AV_LOG_INFO, "\n");
 }
 
@@ -3478,7 +3481,8 @@ static int opt_print_filename(void *optctx, const char *opt, const char *arg) {
     return 0;
 }
 
-void show_help_default(const char *opt, const char *arg) {
+// TODO:------------ 冲突了，所以屏蔽掉 ------------
+/*void show_help_default(const char *opt, const char *arg) {
     av_log_set_callback(log_callback_help);
     show_usage();
     show_help_options(options, "Main options:", 0, 0, 0);
@@ -3486,7 +3490,8 @@ void show_help_default(const char *opt, const char *arg) {
 
     show_help_children(avformat_get_class(), AV_OPT_FLAG_DECODING_PARAM);
     show_help_children(avcodec_get_class(), AV_OPT_FLAG_DECODING_PARAM);
-}
+}*/
+// TODO:------------ 冲突了，所以屏蔽掉 ------------
 
 /**
  * Parse interval specification, according to the format:
@@ -3906,7 +3911,7 @@ char *run_ffprobe(int argc, char **argv) {
             show_usage();
             av_log(NULL, AV_LOG_ERROR, "You have to specify one input file.\n");
             av_log(NULL, AV_LOG_ERROR, "Use -h to get full help or, even better, run 'man %s'.\n",
-                   program_name);
+                   ffprobe_program_name);
             ret = AVERROR(EINVAL);
         } else if (input_filename) {
             ret = probe_file(wctx, input_filename, print_input_filename);
