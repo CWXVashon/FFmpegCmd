@@ -5,6 +5,7 @@ extern "C" {
 
 #include <jni.h>
 #include "ffmpeg.h"
+#include "ffprobe.h"
 #include "android_log.h"
 //
 // Created by  wangchao on 2021/7/30.
@@ -20,36 +21,70 @@ typedef struct tick_context {
 } TickContext;
 TickContext globalCtx;
 
-void log_callback(void*, int, const char*, va_list);
+void log_callback(void *, int, const char *, va_list);
 
 JNIEXPORT jint JNICALL
-cmdRun(JNIEnv *env, jobject thiz, jobjectArray array) {
+runFFmpeg(JNIEnv *env, jobject thiz, jobjectArray array) {
     globalCtx.env = env;
     int argc = env->GetArrayLength(array);
     char *argv[argc];
-    int i;
-    for (i = 0; i < argc; i++) {
+    jstring jsa[argc];
+    for (int i = 0; i < argc; i++) {
         auto js = (jstring) env->GetObjectArrayElement(array, i);
+        jsa[i] = js;
         argv[i] = (char *) env->GetStringUTFChars(js, 0);
     }
-    return run(argc, argv);
+    // 运行 ffmpeg 命令行
+    int resultCode = run_ffmpeg(argc, argv);
+
+    // 释放资源，防止内存泄露
+    for (int j = 0; j < argc; ++j) {
+        env->ReleaseStringUTFChars(jsa[j], argv[j]);
+        env->DeleteLocalRef(jsa[j]);
+    }
+
+    return resultCode;
+}
+
+JNIEXPORT jstring JNICALL
+runFFprobe(JNIEnv *env, jobject thiz, jobjectArray array) {
+    globalCtx.env = env;
+    int argc = env->GetArrayLength(array);
+    char *argv[argc];
+    jstring jsa[argc];
+    for (int i = 0; i < argc; i++) {
+        auto js = (jstring) env->GetObjectArrayElement(array, i);
+        jsa[i] = js;
+        argv[i] = (char *) env->GetStringUTFChars(js, 0);
+    }
+    // 运行 ffprobe 命令行
+    char *jsonStr = run_ffprobe(argc, argv);
+
+    // 释放资源，防止内存泄露
+    for (int j = 0; j < argc; ++j) {
+        env->ReleaseStringUTFChars(jsa[j], argv[j]);
+        env->DeleteLocalRef(jsa[j]);
+    }
+
+    return env->NewStringUTF(jsonStr);
 }
 
 JNIEXPORT void JNICALL
 cancelTaskJNI(JNIEnv *env, jobject thiz, jint cancel) {
-    cancelTask(cancel);
+    cancel_task(cancel);
 }
 
 // native -> java 进度回调
-void progressCallback(int position, int duration, int state) {
+void progress_callback(int position, int duration, int state) {
     if (globalCtx.env && globalCtx.progressMID) {
-        globalCtx.env->CallVoidMethod(globalCtx.ffmpegCmdObj, globalCtx.progressMID, position, duration, state);
+        globalCtx.env->CallVoidMethod(globalCtx.ffmpegCmdObj, globalCtx.progressMID, position,
+                                      duration, state);
     }
 }
 
-void msg_callback(const char* format, va_list args) {
+void msg_callback(const char *format, va_list args) {
     if (globalCtx.env && globalCtx.messageMID) {
-        char *ff_msg = (char*) malloc(sizeof(char) * 1024);
+        char *ff_msg = (char *) malloc(sizeof(char) * 1024);
         vsprintf(ff_msg, format, args);
         jstring jstr = globalCtx.env->NewStringUTF(ff_msg);
         globalCtx.env->CallVoidMethod(globalCtx.ffmpegCmdObj, globalCtx.messageMID, jstr);
@@ -58,7 +93,7 @@ void msg_callback(const char* format, va_list args) {
     }
 }
 
-void log_callback(void* ptr, int level, const char* format, va_list args) {
+void log_callback(void *ptr, int level, const char *format, va_list args) {
     switch (level) {
         case AV_LOG_WARNING:
             XLOGD(format, args);
@@ -78,6 +113,10 @@ void log_callback(void* ptr, int level, const char* format, va_list args) {
     }
 }
 
+void releaseSource() {
+    release_source();
+}
+
 // ------------------------------------------------------------------ 华丽的分割线 ------------------------------------------------------------------
 // 弄成下面这样的自己手动注册本地函数的好处是：
 // 1.方便在任何地方写存放本地方法的类，因为只需通过定义一个宏即可，无需绑定函数名
@@ -89,8 +128,9 @@ void log_callback(void* ptr, int level, const char* format, va_list args) {
 
 static JNINativeMethod ffmpegCmdMethods[] = {
         // 函数名，函数签名，函数指针
-        {"cmdRun", "([Ljava/lang/String;)I", (void *) cmdRun},
-        {"cancelTaskJNI", "(I)V", (void *) cancelTaskJNI}
+        {"runFFmpeg",        "([Ljava/lang/String;)I", (void *) runFFmpeg},
+        {"runFFprobe",        "([Ljava/lang/String;)Ljava/lang/String;", (void *) runFFprobe},
+        {"cancelTaskJNI", "(I)V",                   (void *) cancelTaskJNI}
 };
 
 jint RegisterNativeMethods(JNIEnv *env, const char *className, JNINativeMethod *methods,
@@ -117,14 +157,16 @@ void UnregisterNativeMethods(JNIEnv *env, const char *className) {
 
 // 将需要回调的函数查询并保存下来
 void queryRuntimeInfo(JNIEnv *env) {
-    jmethodID progressFunc = env->GetMethodID(globalCtx.ffmpegCmdClz, "onProgressCallback", "(III)V");
+    jmethodID progressFunc = env->GetMethodID(globalCtx.ffmpegCmdClz, "onProgressCallback",
+                                              "(III)V");
     if (!progressFunc) {
         XLOGE("查询回调进度函数失败，错误代码行数：%d", __LINE__);
         return;
     }
     globalCtx.progressMID = progressFunc;
 
-    jmethodID messageFunc = env->GetMethodID(globalCtx.ffmpegCmdClz, "onMsgCallback", "(Ljava/lang/String;)V");
+    jmethodID messageFunc = env->GetMethodID(globalCtx.ffmpegCmdClz, "onMsgCallback",
+                                             "(Ljava/lang/String;)V");
     if (!messageFunc) {
         XLOGE("查询回调信息函数失败，错误代码行数：%d", __LINE__);
         return;
@@ -174,6 +216,7 @@ JNIEXPORT void JNI_OnUnload(JavaVM *vm, void *reserved) {
     globalCtx.progressMID = NULL;
     globalCtx.messageMID = NULL;
     globalCtx.env = NULL;
+    releaseSource();
 }
 
 #ifdef __cplusplus
