@@ -18,6 +18,8 @@ import x.com.fliepick.bean.FileBean;
 import x.com.fliepick.bean.MediaSelectListener;
 import x.com.fliepick.media.CMediaPickDialog;
 import x.com.log.ViseLog;
+import x.com.media.U_mediaList;
+import x.com.util.U_file;
 import x.com.util.U_permissions;
 
 public class TestActivity extends AppCompatActivity {
@@ -37,9 +39,10 @@ public class TestActivity extends AppCompatActivity {
 //                    }
 //                }).startSelectVideo(TestActivity.this);
 
-                ViseLog.d("开始");
-                String[] cmd = FFmpegUtils.cutAudio(TestBean.mp3Url, 3, 8, TestBean.outputFolder(TestActivity.this) + TestBean.outputMp3Name);
-                FFmpegCmd.getInstance().execute(cmd, new OnHandleListener() {
+//                U_file.copyFile(TestBean.localMp3Url, TestBean.outputFolder(TestActivity.this) + "source.mp3", true);
+                String[] cmd = FFmpegUtils.cutAudio(TestBean.localMp3Url, 3000, 8000, TestBean.outputFolder(TestActivity.this) + TestBean.outputMp3Name);
+                ViseLog.d(cmd);
+                FFmpegCmd.getInstance().executeFFmpeg(cmd, new OnHandleListener() {
                     @Override
                     public void onStart() {
                         U_Toast.show("开始");
@@ -57,7 +60,7 @@ public class TestActivity extends AppCompatActivity {
 
                     @Override
                     public void onFinish() {
-                        U_Toast.show("完成");
+                        U_Toast.show("完成 " + TestBean.outputFolder(TestActivity.this) + TestBean.outputMp3Name);
                     }
                 });
             }

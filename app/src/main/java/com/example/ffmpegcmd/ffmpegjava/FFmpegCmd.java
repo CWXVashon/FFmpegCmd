@@ -34,7 +34,7 @@ public class FFmpegCmd {
         System.loadLibrary("media_handle");
     }
 
-    void executeFFmpeg(String[] commands, OnHandleListener handleListener) {
+    public void executeFFmpeg(String[] commands, OnHandleListener handleListener) {
         mListener = handleListener;
         ThreadPoolExecutor.INSTANCE.executeSingleThreadPool(new Runnable() {
             @Override
