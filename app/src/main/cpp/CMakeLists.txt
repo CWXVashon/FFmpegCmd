@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.10.2)
 
-project("mylib")
-
 set(APP_LIBS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../libs/${ANDROID_ABI})
 set(CONFIG_HEAD_DIR ${CMAKE_CURRENT_SOURCE_DIR}/config/${ANDROID_ABI})
 
@@ -21,6 +19,7 @@ set(FFMPEG_CMD_SRC
         ${FFMPEG_CMD_DIR}/ffmpeg_filter.c
         ${FFMPEG_CMD_DIR}/ffmpeg_hw.c
         ${FFMPEG_CMD_DIR}/ffmpeg_opt.c
+        ${FFMPEG_CMD_DIR}/ffprobe.c
         ${FFMPEG_CMD_DIR}/ffmpeg_cmd.cpp
         ${FFMPEG_CMD_DIR}/ffmpeg_api.cpp
         )

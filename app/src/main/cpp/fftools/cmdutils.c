@@ -134,7 +134,11 @@ void exit_program(int ret)
     if (program_exit)
         program_exit(ret);
 
-    exit(ret);
+//    exit(ret);
+    // TODO:新增代码--------------
+    // 将 setjmp 保存的程序运行上下文弹栈并设置返回值为 1
+    longjmp(jmpBuf, 1);
+    // TODO:新增代码--------------
 }
 
 double parse_number_or_die(const char *context, const char *numstr, int type,

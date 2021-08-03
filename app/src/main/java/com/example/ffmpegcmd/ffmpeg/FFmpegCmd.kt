@@ -22,12 +22,15 @@ internal class FFmpegCmd private constructor(){
         ThreadPoolExecutor.executeSingleThreadPool(Runnable {
             handleListener.onStart()
             // call jni method
-            run(array)
+            runFFmpeg(array)
             handleListener.onFinish()
+            cancelTaskJNI(0);
         })
 
     }
 
-    private external fun run(array: Array<String?>?): Int
-
+    // 执行命令
+    private external fun runFFmpeg(array: Array<String?>?): Int
+    // 取消进行中的任务，0：不取消，1：取消
+    private external fun cancelTaskJNI(cancel: Int)
 }
