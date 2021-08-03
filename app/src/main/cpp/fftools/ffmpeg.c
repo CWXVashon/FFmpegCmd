@@ -1987,7 +1987,7 @@ static void print_report(int is_last_report, int64_t timer_start, int64_t cur_ti
     if (input_files) {
         report_duration = input_files[0]->ctx->duration / AV_TIME_BASE;
     }
-    progressCallback((int)report_position, (int)report_duration, STATE_RUNNING);
+    progress_callback((int) report_position, (int) report_duration, STATE_RUNNING);
     // TODO:新增代码--------------
 
     first_report = 0;
@@ -5078,7 +5078,7 @@ static int64_t getmaxrss(void) {
 static void log_callback_null(void *ptr, int level, const char *fmt, va_list vl) {
 }
 
-int run(int argc, char **argv) {
+int run_ffmpeg(int argc, char **argv) {
     int i, ret;
     BenchmarkTimeStamps ti;
 
@@ -5158,14 +5158,14 @@ int run(int argc, char **argv) {
     // TODO: ---------- 这些都是自己新增的 ----------
     end:
     av_log(NULL, AV_LOG_INFO, "FFmpeg result = %d\n", main_return_code);
-    progressCallback(100, 100, main_return_code == 0 ? STATE_FINISH : STATE_ERROR);
+    progress_callback(100, 100, main_return_code == 0 ? STATE_FINISH : STATE_ERROR);
     ffmpeg_cleanup(0);
     // TODO: ---------- 这些都是自己新增的 ----------
     return main_return_code;
 }
 
 // TODO: ---------- 这些都是自己新增的 ----------
-void cancelTask(int cancel) {
+void cancel_task(int cancel) {
     isCancelTask = cancel;
 }
 // TODO: ---------- 这些都是自己新增的 ----------

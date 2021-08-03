@@ -41,7 +41,7 @@ public class FFmpegCmd {
             public void run() {
                 if (handleListener != null) {
                     handleListener.onStart();
-                    cmdRun(commands);
+                    runFFmpeg(commands);
                     handleListener.onFinish();
                 }
             }
@@ -79,7 +79,7 @@ public class FFmpegCmd {
     }
 
     // 执行命令
-    private native int cmdRun(String[] commands);
+    private native int runFFmpeg(String[] commands);
 
     // 取消进行中的任务，0：不取消，1：取消
     private native void cancelTaskJNI(int cancel);
