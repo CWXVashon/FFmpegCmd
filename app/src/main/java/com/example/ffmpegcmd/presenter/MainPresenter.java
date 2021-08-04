@@ -158,7 +158,7 @@ public class MainPresenter extends BasePresenter<IMainView> {
                 List<String> filePaths = new ArrayList<>();
                 filePaths.add(file1.getAbsolutePath());
                 filePaths.add(file2.getAbsolutePath());
-                videoConcat(filePaths, new File(downloadDir, "target.mp4").getAbsolutePath());
+                videoConcat(640, 320, filePaths, new File(downloadDir, "target.mp4").getAbsolutePath());
                 break;
             case "视频倒放":
                 videoReverse(
@@ -170,12 +170,25 @@ public class MainPresenter extends BasePresenter<IMainView> {
     }
 
     /**
-     * 拼接视频
+     * 拼接视频，生成的视频宽高与第一个视频宽高一样
      *
      * @param filePaths      需要拼接的文件路径列表
      * @param targetFilePath 生成的文件存放的绝对路径（含文件名）
      */
-    private void videoConcat(List<String> filePaths, String targetFilePath) {
+    public void videoConcat(List<String> filePaths, String targetFilePath) {
+        videoConcat(1, 1, filePaths, targetFilePath);
+    }
+
+    /**
+     * 拼接视频，如果想要生成的视频宽高与第一个视频宽高一样，宽高传 1
+     *
+     * @param width          生成的目标视频宽
+     * @param height         生成的目标视频高
+     * @param filePaths      需要拼接的文件路径列表
+     * @param targetFilePath 生成的文件存放的绝对路径（含文件名）
+     */
+    public void videoConcat(int width, int height, List<String> filePaths, String targetFilePath) {
+        if (width <= 0 || height <= 0) return;
         if (filePaths == null || filePaths.size() < 2 || TextUtils.isEmpty(targetFilePath)) return;
         List<String> existFiles = new ArrayList<>();
         for (String path : filePaths)
@@ -193,17 +206,22 @@ public class MainPresenter extends BasePresenter<IMainView> {
             tmpFiles.add(tmpDirPath + File.separator + String.format(Locale.getDefault(), "tmp_file_%d.ts", i));
         // 存放命令集的列表
         List<String[]> commandList = new ArrayList<>();
-        String firstFile = existFiles.remove(0);
-        // 1.统一视频编码与音频编码，视频：libx264、音频：aac，并将第一个视频转码
-        commandList.add(FFmpegUtils.transformVideoWithEncode(firstFile, tmpFiles.get(0)));
-        // 2.通过 ffprobe 获取第一个视频的流信息与格式，得到宽高
-        String json = FFmpegCmd.getInstance().executeFFprobe(FFmpegUtils.probeFormat(firstFile));
-        MediaBean mediaBean = JsonUtils.parseMediaFormat(json);
-        if (mediaBean.videoBean == null) return;
-        // 3.将需要拼接的视频统一转码并设置宽高为第一视频的宽高
-        for (int i = 0; i < existFiles.size(); i++)
-            commandList.add(FFmpegUtils.transformVideoWithEncode(
-                    existFiles.get(i), mediaBean.videoBean.width, mediaBean.videoBean.height, tmpFiles.get(i + 1)));
+        if (width == 1 && height == 1) {    // 生成视频的宽高与第一个视频保持一致
+            String firstFile = existFiles.remove(0);
+            // 1.统一视频编码与音频编码，视频：libx264、音频：aac，并将第一个视频转码
+            commandList.add(FFmpegUtils.transformVideoWithEncode(firstFile, tmpFiles.get(0)));
+            // 2.通过 ffprobe 获取第一个视频的流信息与格式，得到宽高
+            String json = FFmpegCmd.getInstance().executeFFprobe(FFmpegUtils.probeFormat(firstFile));
+            MediaBean mediaBean = JsonUtils.parseMediaFormat(json);
+            if (mediaBean.videoBean == null) return;
+            // 3.将需要拼接的视频统一转码并设置宽高为第一视频的宽高
+            for (int i = 0; i < existFiles.size(); i++)
+                commandList.add(FFmpegUtils.transformVideoWithEncode(
+                        existFiles.get(i), mediaBean.videoBean.width, mediaBean.videoBean.height, tmpFiles.get(i + 1)));
+        } else {    // 自己手动设置生成视频的宽高
+            for (int i = 0; i < existFiles.size(); i++)
+                commandList.add(FFmpegUtils.transformVideoWithEncode(existFiles.get(i), width, height, tmpFiles.get(i)));
+        }
         // 4.拼接视频
         // 4.1格式化需要拼接的文件列表
         StringBuilder builder = new StringBuilder();
