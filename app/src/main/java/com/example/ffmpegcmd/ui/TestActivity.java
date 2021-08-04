@@ -40,7 +40,7 @@ public class TestActivity extends AppCompatActivity {
 //                }).startSelectVideo(TestActivity.this);
 
 //                U_file.copyFile(TestBean.localMp3Url, TestBean.outputFolder(TestActivity.this) + "source.mp3", true);
-                String[] cmd = FFmpegUtils.cutAudio(TestBean.localMp3Url, 3000, 8000, TestBean.outputFolder(TestActivity.this) + TestBean.outputMp3Name);
+                String[] cmd = FFmpegUtils.cutAudio(TestBean.localMp3Url, 3, 8, TestBean.outputFolder(TestActivity.this) + TestBean.outputMp3Name);
                 ViseLog.d(cmd);
                 FFmpegCmd.getInstance().executeFFmpeg(cmd, new OnHandleListener() {
                     @Override
