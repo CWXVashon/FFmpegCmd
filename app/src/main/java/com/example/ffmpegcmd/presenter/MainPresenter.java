@@ -123,6 +123,7 @@ public class MainPresenter extends BasePresenter<IMainView> {
         itemList.add(new MainItemBean("人像动漫", R.mipmap.ic_launcher_round));
         itemList.add(new MainItemBean("精美滤镜", R.mipmap.ic_launcher_round));
         itemList.add(new MainItemBean("测试", R.mipmap.ic_launcher_round));
+        itemList.add(new MainItemBean("整合", R.mipmap.ic_launcher_round));
         mList.add(itemList);
 
         mList.add(new MainDividerBean());
@@ -134,6 +135,9 @@ public class MainPresenter extends BasePresenter<IMainView> {
         switch (name) {
             case "视频编辑":
                 mView.gotoVideoEditActivity();
+                break;
+            case "整合":
+                mView.gotoEditActivity();
                 break;
             case "测试":
                 mView.gotoTestActivity();

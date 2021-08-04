@@ -33,6 +33,7 @@
             android:screenOrientation="portrait" />
         <activity android:name=".ui.TestActivity" />
         <activity android:name=".ui.VideoEditActivity" />
+        <activity android:name=".ui.PreviewActivity" />
     </application>
 
 </manifest>

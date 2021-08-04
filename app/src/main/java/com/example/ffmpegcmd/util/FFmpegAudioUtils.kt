@@ -15,8 +15,8 @@ object FFmpegAudioUtils {
     @SuppressLint("DefaultLocale")
     @JvmStatic
     fun cutAudio(
-        srcFile: String?, startTime: Long, duration: Long, targetFile: String?
-    ): Array<String?> {
+        srcFile: String, startTime: Long, duration: Long, targetFile: String
+    ): Array<String> {
         var command = "ffmpeg -y -i %s -vn -acodec copy -ss %d -t %d %s"
         command = String.format(command, srcFile, startTime / 1000, duration / 1000, targetFile)
         return command.split(" ").toTypedArray() //以空格分割为字符串数组
@@ -33,9 +33,9 @@ object FFmpegAudioUtils {
      */
     @JvmStatic
     fun cutAudio(
-        srcFile: String?, startTime: String?, endTime: String?,
-        targetFile: String?
-    ): Array<String?> {
+        srcFile: String, startTime: String, endTime: String,
+        targetFile: String
+    ): Array<String> {
         val cmd = "ffmpeg -i %s -vn -acodec copy -ss %s -t %s %s -y"
         val command = String.format(cmd, srcFile, startTime, endTime, targetFile)
         return command.split(" ").toTypedArray()//以空格分割为字符串数组
