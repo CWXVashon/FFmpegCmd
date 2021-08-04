@@ -1618,7 +1618,7 @@ static const char *json_escape_str(AVBPrint *dst, const char *src, void *log_ctx
     return dst->str;
 }
 
-#define JSON_INDENT() printf("%*c", json->indent_level * 4, ' ')
+#define JSON_INDENT() printf_json("%*c", json->indent_level * 4, ' ')
 
 static void json_print_section_header(WriterContext *wctx) {
     JSONContext *json = wctx->priv;
@@ -3060,6 +3060,10 @@ static int open_input_file(InputFile *ifile, const char *filename,
         av_dict_set(&format_opts, "scan_all_pmts", "1", AV_DICT_DONT_OVERWRITE);
         scan_all_pmts_set = 1;
     }
+
+    av_register_all();
+    avcodec_register_all();
+
     if ((err = avformat_open_input(&fmt_ctx, filename,
                                    iformat, &format_opts)) < 0) {
         print_error(filename, err);

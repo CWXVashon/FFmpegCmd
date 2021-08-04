@@ -57,6 +57,11 @@ public class VideoHandleActivity_Java extends AppCompatActivity implements View.
         switch (v.getId()) {
             case R.id.test_ffprobe_btn:
                 File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "cat.mp4");
+                if (file.exists()) {
+                    Log.e("--------------", "文件存在");
+                } else {
+                    Log.e("--------------", "文件不存在");
+                }
                 String path = file.getAbsolutePath();
                 Log.e("--------------", path);
                 // TODO: 2021/8/3 这里有点问题，获取不到视频信息，待完善
