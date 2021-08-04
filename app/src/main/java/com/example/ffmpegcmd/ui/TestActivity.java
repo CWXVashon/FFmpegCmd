@@ -56,7 +56,8 @@ public class TestActivity extends AppCompatActivity {
 
 //                String[] cmd = FFmpegInfoUtils.ffmpegFormat();
 //                String[] cmd = FFmpegUtils.cutAudio(TestBean.localMp3Url, 3, 8, targetPath);
-                String[] cmd = FFmpegAudioUtils.cutAudio(TestBean.localMp3Url, "00:00:10", "00:00:30", TestBean.outputFolder(TestActivity.this) + TestBean.outputMp3Name);
+                String[] cmd2 = FFmpegAudioUtils.cutAudio(TestBean.localMp3Url, "00:00:10", "00:00:30", TestBean.outputFolder(TestActivity.this) + TestBean.outputMp3Name);
+                String[] cmd = new String[]{"ffmpeg","-i","/storage/emulated/0/DCIM/Camera/20210807_202202.mp4","-strict","-2","-vf","crop=548:576:0:0","/storage/emulated/0/Download/ff_1628338739890.mp3"};
                 ViseLog.d(cmd);
                 FFmpegCmd.getInstance().executeFFmpeg(cmd, new OnHandleListener() {
                     @Override

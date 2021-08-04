@@ -1,6 +1,5 @@
 package com.example.ffmpegcmd.ui;
 
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.SeekBar;
@@ -8,22 +7,33 @@ import android.widget.SeekBar;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.ffmpegcmd.R;
+import com.example.ffmpegcmd.bean.TestBean;
 import com.example.ffmpegcmd.databinding.ActivityEditBinding;
+import com.example.ffmpegcmd.ffmpegjava.FFmpegCmd;
+import com.example.ffmpegcmd.ffmpegjava.OnHandleListener;
+import com.example.ffmpegcmd.ui.widget.ChooseAreaView;
+import com.example.ffmpegcmd.util.FFmpegAudioUtils;
+import com.example.ffmpegcmd.util.FFmpegVideoUtils;
 import com.xing.hhplayer.common.CVPlayer;
 import com.xing.hhplayer.common.base.player.HHMediaPlayer;
 import com.xing.hhplayer.common.bean.TvList.TvView;
 import com.xing.hhplayer.common.bean.Type.PlayerState;
 import com.xing.hhplayer.common.util.V_time;
 
+import x.com.base.toast.U_Toast;
+import x.com.fliepick.bean.FileBean;
 import x.com.fliepick.media.CMediaPickDialog;
 import x.com.log.ViseLog;
+import x.com.util.U_file;
 
 public class VideoEditActivity extends AppCompatActivity {
     ActivityEditBinding binding;
     private CVPlayer player;
-    private Uri path;
+    private FileBean fileBean;
     private String tip;
     private String outputPath;
+    private ChooseAreaView areaView;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -34,7 +44,7 @@ public class VideoEditActivity extends AppCompatActivity {
         binding.selectMusicBtn.setOnClickListener(v -> CMediaPickDialog.builder().setNeedPreview(false).setOnSingleListener(fileBean -> {
             ViseLog.d(fileBean);
             initPlayer();
-            path = fileBean.getFilePathUri();
+            this.fileBean = fileBean;
             tip = "音频：" + fileBean.getFileName();
             binding.seekLayout.panelEndTime.setText(V_time.formatTime(fileBean.getMusicFileBean().getMediaDuration()));
             binding.seekLayout.panelSeek.setMax((int) (fileBean.getMusicFileBean().getMediaDuration()));
@@ -43,7 +53,7 @@ public class VideoEditActivity extends AppCompatActivity {
         binding.selectVideBtn.setOnClickListener(v -> CMediaPickDialog.builder().setNeedPreview(false).setOnSingleListener(fileBean -> {
             ViseLog.d(fileBean);
             initPlayer();
-            path = fileBean.getFilePathUri();
+            this.fileBean = fileBean;
             tip = "视频：" + fileBean.getFileName() + " 宽高：" + fileBean.getVideoFileBean().getVWidth() + "x" + fileBean.getVideoFileBean().getVHeight();
             binding.seekLayout.panelEndTime.setText(V_time.formatTime(fileBean.getVideoFileBean().getMediaDuration()));
             binding.seekLayout.panelSeek.setMax((int) (fileBean.getVideoFileBean().getMediaDuration()));
@@ -93,7 +103,7 @@ public class VideoEditActivity extends AppCompatActivity {
             player.start();
         } else {
             player.reset();
-            player.prepare(path);
+            player.prepare(fileBean.getFilePathUri());
             binding.informationText.setText(tip);
         }
     }
@@ -124,6 +134,50 @@ public class VideoEditActivity extends AppCompatActivity {
     }
 
     public void cutBtn(View view) {
-        ViseLog.d("view");
+        chooseAreaView();
+    }
+
+    private void chooseAreaView() {
+        if (areaView != null) {
+            player.removeExtraView(areaView);
+            areaView = null;
+        } else {
+            areaView = new ChooseAreaView(VideoEditActivity.this);
+            player.addExtraView(areaView);
+            View playView = player.getPlayerView().findViewById(R.id.video_normal_id);
+            areaView.setLayoutSize(playView.getWidth(), playView.getHeight());
+        }
+    }
+
+    public void exportVideo(View view) {
+        String[] cmd = FFmpegVideoUtils.cutVideoArea(fileBean.getFilePath(),
+                (areaView.getResultRight() - areaView.getResultLeft()),
+                (areaView.getResultBottom() - areaView.getResultTop()),
+                (areaView.getResultLeft()),
+                (areaView.getResultTop()),
+                U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
+        ViseLog.d(cmd);
+        FFmpegCmd.getInstance().executeFFmpeg(cmd, new OnHandleListener() {
+            @Override
+            public void onStart() {
+                U_Toast.show("开始");
+            }
+
+            @Override
+            public void onMessage(String message) {
+                ViseLog.d(message);
+            }
+
+            @Override
+            public void onProgress(int position, int duration) {
+                ViseLog.showLog(position + " " + duration);
+            }
+
+            @Override
+            public void onFinish() {
+                U_Toast.show("完成 " + U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
+                PreviewActivity.start(VideoEditActivity.this, U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
+            }
+        });
     }
 }
