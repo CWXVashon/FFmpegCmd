@@ -112,6 +112,11 @@ public class MainActivity extends AppCompatActivity implements IMainView {
     }
 
     @Override
+    public void gotoPreview(String path) {
+        PreviewActivity.start(this,path);
+    }
+
+    @Override
     public void gotoEditActivity() {
         startActivity(new Intent(this, VideoEditActivity.class));
     }

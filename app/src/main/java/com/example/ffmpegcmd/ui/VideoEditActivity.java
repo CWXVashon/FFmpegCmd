@@ -13,15 +13,15 @@ import com.example.ffmpegcmd.databinding.ActivityEditBinding;
 import com.example.ffmpegcmd.ffmpegjava.FFmpegCmd;
 import com.example.ffmpegcmd.ffmpegjava.OnHandleListener;
 import com.example.ffmpegcmd.ui.widget.ChooseAreaView;
-import com.example.ffmpegcmd.util.FFmpegAudioUtils;
+import com.example.ffmpegcmd.util.CVPlayer2;
 import com.example.ffmpegcmd.util.FFmpegVideoUtils;
-import com.xing.hhplayer.common.CVPlayer;
 import com.xing.hhplayer.common.base.player.HHMediaPlayer;
 import com.xing.hhplayer.common.bean.TvList.TvView;
 import com.xing.hhplayer.common.bean.Type.PlayerState;
 import com.xing.hhplayer.common.util.V_time;
 
 import x.com.base.toast.U_Toast;
+import x.com.dialog.CProgressDialog;
 import x.com.fliepick.bean.FileBean;
 import x.com.fliepick.media.CMediaPickDialog;
 import x.com.log.ViseLog;
@@ -29,11 +29,12 @@ import x.com.util.U_file;
 
 public class VideoEditActivity extends AppCompatActivity {
     ActivityEditBinding binding;
-    private CVPlayer player;
+    private CVPlayer2 player;
     private FileBean fileBean;
     private String tip;
     private String outputPath;
     private ChooseAreaView areaView;
+    private CProgressDialog progressDialog;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -89,7 +90,7 @@ public class VideoEditActivity extends AppCompatActivity {
     //先用个播放器做预览吧，后面再换
     private void initPlayer() {
         if (player == null) {
-            player = new CVPlayer(this, new HHMediaPlayer(), TvView.NEWSURFACE, binding.playerLayout);
+            player = new CVPlayer2(this, new HHMediaPlayer(), TvView.NEWSURFACE, binding.playerLayout);
             player.setPlayWhenPrepared(true);
             player.setOnProgressListener(time -> runOnUiThread(() -> {
                 binding.seekLayout.panelSeek.setProgress(Integer.parseInt(time.toString()));
@@ -106,6 +107,11 @@ public class VideoEditActivity extends AppCompatActivity {
             player.prepare(fileBean.getFilePathUri());
             binding.informationText.setText(tip);
         }
+    }
+
+    private void initProgress() {
+        progressDialog = new CProgressDialog("执行中");
+        progressDialog.showDialog(this);
     }
 
     private void pausePlayer() {
@@ -150,13 +156,16 @@ public class VideoEditActivity extends AppCompatActivity {
     }
 
     public void exportVideo(View view) {
+        //选取框取出来的是比例，要和视频宽高相乘得到实际的宽高数据
+        float left = (areaView.getResultF()[0] * fileBean.getVideoFileBean().getVWidth());
+        float top = (areaView.getResultF()[1] * fileBean.getVideoFileBean().getVHeight());
+        float width = (areaView.getResultF()[2] - areaView.getResultF()[0]) * fileBean.getVideoFileBean().getVWidth();
+        float height = (areaView.getResultF()[3] - areaView.getResultF()[1]) * fileBean.getVideoFileBean().getVHeight();
+
         String[] cmd = FFmpegVideoUtils.cutVideoArea(fileBean.getFilePath(),
-                (areaView.getResultRight() - areaView.getResultLeft()),
-                (areaView.getResultBottom() - areaView.getResultTop()),
-                (areaView.getResultLeft()),
-                (areaView.getResultTop()),
-                U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
+                width, height, left, top, U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
         ViseLog.d(cmd);
+        initProgress();
         FFmpegCmd.getInstance().executeFFmpeg(cmd, new OnHandleListener() {
             @Override
             public void onStart() {
@@ -170,11 +179,16 @@ public class VideoEditActivity extends AppCompatActivity {
 
             @Override
             public void onProgress(int position, int duration) {
+                progressDialog.showProgress(position);
+                if (position == 100) {
+                    progressDialog.dismiss();
+                }
                 ViseLog.showLog(position + " " + duration);
             }
 
             @Override
             public void onFinish() {
+                progressDialog.dismiss();
                 U_Toast.show("完成 " + U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
                 PreviewActivity.start(VideoEditActivity.this, U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
             }

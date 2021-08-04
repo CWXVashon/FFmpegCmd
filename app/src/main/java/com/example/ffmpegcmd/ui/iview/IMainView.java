@@ -12,6 +12,7 @@ public interface IMainView extends IView {
     void gotoVideoEditActivity();
 
     void gotoTestActivity();
+    void gotoPreview(String path);
     void gotoEditActivity();
 
     /**
