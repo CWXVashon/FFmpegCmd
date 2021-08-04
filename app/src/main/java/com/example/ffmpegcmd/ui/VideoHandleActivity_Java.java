@@ -13,7 +13,6 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.ffmpegcmd.R;
@@ -64,7 +63,6 @@ public class VideoHandleActivity_Java extends AppCompatActivity implements View.
                 }
                 String path = file.getAbsolutePath();
                 Log.e("--------------", path);
-                // TODO: 2021/8/3 这里有点问题，获取不到视频信息，待完善
                 String jsonStr = mFFmpegHandler.executeFFprobeCmd(FFmpegUtils.probeFormat(path));
                 Log.e("--------------", jsonStr);
                 ffprobeMsgTv.setText(jsonStr);

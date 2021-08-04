@@ -8,8 +8,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 
 import com.example.ffmpegcmd.adapter.MainAdapterRV;
 import com.example.ffmpegcmd.bean.MainDividerBean;
@@ -67,6 +67,10 @@ public class MainActivity extends AppCompatActivity {
                     case "视频编辑":
                         VideoHandleActivity_Java.start(MainActivity.this);
                         break;
+                    case "测试":
+                        Intent intent = new Intent(MainActivity.this, TestActivity.class);
+                        startActivity(intent);
+                        break;
                     default:
                 }
             }
@@ -112,6 +116,7 @@ public class MainActivity extends AppCompatActivity {
         itemList = new ArrayList<>();
         itemList.add(new MainItemBean("人像动漫", R.mipmap.ic_launcher_round));
         itemList.add(new MainItemBean("精美滤镜", R.mipmap.ic_launcher_round));
+        itemList.add(new MainItemBean("测试", R.mipmap.ic_launcher_round));
         mList.add(itemList);
 
         mList.add(new MainDividerBean());

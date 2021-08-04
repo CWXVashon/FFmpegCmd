@@ -4,6 +4,8 @@ import androidx.annotation.Keep;
 
 import com.example.ffmpegcmd.util.ThreadPoolExecutor;
 
+import x.com.log.ViseLog;
+
 /**
  * Created by Vashon on 2021/8/2.
  */
@@ -34,14 +36,14 @@ public class FFmpegCmd {
         System.loadLibrary("media_handle");
     }
 
-    void executeFFmpeg(String[] commands, OnHandleListener handleListener) {
+    public void executeFFmpeg(String[] commands, OnHandleListener handleListener) {
         mListener = handleListener;
         ThreadPoolExecutor.INSTANCE.executeSingleThreadPool(new Runnable() {
             @Override
             public void run() {
                 if (handleListener != null) {
                     handleListener.onStart();
-                    runFFmpeg(commands);
+                    ViseLog.d(runFFmpeg(commands));
                     handleListener.onFinish();
                 }
             }

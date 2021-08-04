@@ -47,7 +47,7 @@ object FFmpegUtils {
      * @return 剪切后的文件
      */
     @JvmStatic
-    fun cutAudio(srcFile: String?, startTime: String?, endTime: String?,
+    fun cutAudio(srcFile: String?, startTime: Long?, endTime: Long?,
                  targetFile: String?): Array<String?> {
         val cmd = "ffmpeg -y -i %s -vn -acodec copy -ss %s -t %s %s"
         val command = String.format(cmd, srcFile, startTime, endTime, targetFile)
