@@ -1,6 +1,8 @@
 package com.example.ffmpegcmd.ui;
 
 import android.os.Bundle;
+import android.os.Environment;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -10,6 +12,7 @@ import com.example.ffmpegcmd.ffmpegjava.FFmpegCmd;
 import com.example.ffmpegcmd.ffmpegjava.OnHandleListener;
 import com.example.ffmpegcmd.util.FFmpegUtils;
 
+import java.io.File;
 import java.util.Map;
 
 import x.com.base.toast.U_Toast;
@@ -40,7 +43,19 @@ public class TestActivity extends AppCompatActivity {
 //                }).startSelectVideo(TestActivity.this);
 
 //                U_file.copyFile(TestBean.localMp3Url, TestBean.outputFolder(TestActivity.this) + "source.mp3", true);
-                String[] cmd = FFmpegUtils.cutAudio(TestBean.localMp3Url, 3, 8, TestBean.outputFolder(TestActivity.this) + TestBean.outputMp3Name);
+
+                File srcFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "source.mp3");
+                File targetFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), TestBean.outputMp3Name);
+                if (srcFile.exists()) {
+                    Log.e("--------------", "文件存在");
+                } else {
+                    Log.e("--------------", "文件不存在");
+                }
+                String srcPath = srcFile.getAbsolutePath();
+                String targetPath = targetFile.getAbsolutePath();
+
+                String[] cmd = FFmpegUtils.cutAudio(srcPath, 3, 8, targetPath);
+//                String[] cmd = FFmpegUtils.cutAudio(TestBean.localMp3Url, 3, 8, TestBean.outputFolder(TestActivity.this) + TestBean.outputMp3Name);
                 ViseLog.d(cmd);
                 FFmpegCmd.getInstance().executeFFmpeg(cmd, new OnHandleListener() {
                     @Override

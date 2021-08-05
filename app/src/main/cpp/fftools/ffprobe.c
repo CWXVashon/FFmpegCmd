@@ -3061,9 +3061,6 @@ static int open_input_file(InputFile *ifile, const char *filename,
         scan_all_pmts_set = 1;
     }
 
-    av_register_all();
-    avcodec_register_all();
-
     if ((err = avformat_open_input(&fmt_ctx, filename,
                                    iformat, &format_opts)) < 0) {
         print_error(filename, err);
