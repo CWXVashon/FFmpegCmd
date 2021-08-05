@@ -15,7 +15,6 @@ import android.view.View
 import android.widget.Toast
 import com.example.ffmpegcmd.util.ContentUtil
 
-
 abstract class BaseActivity : AppCompatActivity(), View.OnClickListener {
 
     abstract val layoutId: Int
