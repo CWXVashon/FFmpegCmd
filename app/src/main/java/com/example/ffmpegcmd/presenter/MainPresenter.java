@@ -17,6 +17,8 @@ import com.example.ffmpegcmd.ffmpegjava.FFmpegHandler;
 import com.example.ffmpegcmd.ffmpegjava.OnHandleListener;
 import com.example.ffmpegcmd.ui.iview.IMainView;
 import com.example.ffmpegcmd.util.FFmpegUtils;
+import com.example.ffmpegcmd.util.SaveFileUtils;
+import com.example.ffmpegcmd.util.ThreadPoolExecutor;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -137,23 +139,46 @@ public class MainPresenter extends BasePresenter<IMainView> {
                 mView.gotoTestActivity();
                 break;
             case "视频拼接":
-
+                videoConcat();
                 break;
             case "视频倒放":
-                File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-                File srcFile = new File(downloadDir, "cat.mp4");
-                File targetFile = new File(downloadDir, "reverse.mp4");
-                if (srcFile.exists()) {
-                    Log.e("--------------", "文件存在");
-                } else {
-                    Log.e("--------------", "文件不存在");
-                }
-                String srcPath = srcFile.getAbsolutePath();
-                String targetPath = targetFile.getAbsolutePath();
-                mFFmpegHandler.executeFFmpegCmd(FFmpegUtils.reverseVideo(srcPath, targetPath));
+                videoReverse();
                 break;
             default:
         }
+    }
+
+    private void videoConcat() {
+        // TODO: 2021/8/5 vashon 
+        // 1.通过 ffprobe 获取视频流的信息与格式
+        // 2.将视频转码为同一格式、宽高
+        // 3.拼接视频
+    }
+
+    private void videoReverse() {
+        File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        File srcFile = new File(downloadDir, "cat.mp4");
+        File targetFile = new File(downloadDir, "reverse.mp4");
+        if (srcFile.exists()) {
+            Log.e("--------------", "文件存在");
+        } else {
+            Log.e("--------------", "文件不存在");
+        }
+        String srcPath = srcFile.getAbsolutePath();
+        String targetPath = targetFile.getAbsolutePath();
+        mFFmpegHandler.executeFFmpegCmd(FFmpegUtils.reverseVideo(srcPath, targetPath));
+    }
+
+    // 将 assets 文件夹的测试文件保存在指定路径
+    public void saveAssetsFile() {
+        ThreadPoolExecutor.INSTANCE.executeSingleThreadPool(new Runnable() {
+            @Override
+            public void run() {
+                String downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
+                SaveFileUtils.saveAssetsFileToPath(downloadDir, "cat.mp4");
+                SaveFileUtils.saveAssetsFileToPath(downloadDir, "rabbit.mp4");
+            }
+        });
     }
 
     @Override

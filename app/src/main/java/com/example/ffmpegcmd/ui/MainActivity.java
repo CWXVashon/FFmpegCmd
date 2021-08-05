@@ -1,5 +1,6 @@
 package com.example.ffmpegcmd.ui;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -27,6 +28,8 @@ import com.example.ffmpegcmd.ffmpegjava.OnHandleListener;
 import com.example.ffmpegcmd.presenter.MainPresenter;
 import com.example.ffmpegcmd.ui.iview.IMainView;
 import com.example.ffmpegcmd.util.FFmpegUtils;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -73,6 +76,18 @@ public class MainActivity extends AppCompatActivity implements IMainView {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             requestPermissions(permissions, 123);
         }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NotNull String[] permissions, @NotNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        mPresenter.saveAssetsFile();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mPresenter.saveAssetsFile();
     }
 
     private void initView() {
