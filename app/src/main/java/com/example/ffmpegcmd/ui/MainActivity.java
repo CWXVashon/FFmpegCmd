@@ -10,6 +10,11 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Environment;
+import android.util.Log;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.example.ffmpegcmd.adapter.MainAdapterRV;
 import com.example.ffmpegcmd.bean.MainDividerBean;
@@ -17,15 +22,27 @@ import com.example.ffmpegcmd.bean.MainItemBean;
 import com.example.ffmpegcmd.bean.MainTitleBean;
 import com.example.ffmpegcmd.R;
 import com.example.ffmpegcmd.databinding.ActivityMainBinding;
+import com.example.ffmpegcmd.ffmpegjava.FFmpegCmd;
+import com.example.ffmpegcmd.ffmpegjava.OnHandleListener;
+import com.example.ffmpegcmd.presenter.MainPresenter;
+import com.example.ffmpegcmd.ui.iview.IMainView;
+import com.example.ffmpegcmd.util.FFmpegUtils;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+import x.com.base.toast.U_Toast;
+import x.com.log.ViseLog;
+
+public class MainActivity extends AppCompatActivity implements IMainView {
 
     private ActivityMainBinding binding;
-    private List mList;
+    private LinearLayout mProgressLl;
+    private TextView mProgressTv;
     private MainAdapterRV mMainAdapterRV;
+
+    private MainPresenter mPresenter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,12 +51,14 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        mPresenter = new MainPresenter(this);
+
         initPermission();
+        initView();
         initRecyclerView();
-        initData();
     }
 
-    private String[] permissions = {Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.RECORD_AUDIO};
+    private final String[] permissions = {Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.RECORD_AUDIO};
 
     private void initPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
@@ -56,6 +75,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void initView() {
+        mProgressLl = binding.progressLl;
+        mProgressTv = binding.progressTv;
+    }
+
     private void initRecyclerView() {
         RecyclerView recyclerView = binding.recyclerView;
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -63,65 +87,47 @@ public class MainActivity extends AppCompatActivity {
         mMainAdapterRV = new MainAdapterRV(new MainAdapterRV.OnItemClickListener() {
             @Override
             public void onItemClick(String name) {
-                switch (name) {
-                    case "视频编辑":
-                        VideoHandleActivity_Java.start(MainActivity.this);
-                        break;
-                    case "测试":
-                        Intent intent = new Intent(MainActivity.this, TestActivity.class);
-                        startActivity(intent);
-                        break;
-                    default:
-                }
+                mPresenter.handleMedia(name);
             }
         });
         recyclerView.setAdapter(mMainAdapterRV);
+        mPresenter.initData();
     }
 
-    private void initData() {
-        mList = new ArrayList();
-        mList.add(new MainTitleBean("热门工具"));
-
-        List<MainItemBean> itemList = new ArrayList<>();
-        itemList.add(new MainItemBean("视频编辑", R.mipmap.ic_launcher_round));
-        itemList.add(new MainItemBean("图片相册", R.mipmap.ic_launcher_round));
-        itemList.add(new MainItemBean("手持弹幕", R.mipmap.ic_launcher_round));
-        itemList.add(new MainItemBean("人像抠图", R.mipmap.ic_launcher_round));
-        mList.add(itemList);
-
-        itemList = new ArrayList<>();
-        itemList.add(new MainItemBean("区域裁剪", R.mipmap.ic_launcher_round));
-        itemList.add(new MainItemBean("多格视频", R.mipmap.ic_launcher_round));
-        itemList.add(new MainItemBean("更换音乐", R.mipmap.ic_launcher_round));
-        itemList.add(new MainItemBean("视频拼接", R.mipmap.ic_launcher_round));
-        mList.add(itemList);
-
-        mList.add(new MainDividerBean());
-        mList.add(new MainTitleBean("必备工具"));
-
-        itemList = new ArrayList<>();
-        itemList.add(new MainItemBean("合拍视频", R.mipmap.ic_launcher_round));
-        itemList.add(new MainItemBean("去水印", R.mipmap.ic_launcher_round));
-        itemList.add(new MainItemBean("提取音频", R.mipmap.ic_launcher_round));
-        itemList.add(new MainItemBean("变快变慢", R.mipmap.ic_launcher_round));
-        mList.add(itemList);
-
-        itemList = new ArrayList<>();
-        itemList.add(new MainItemBean("画布比例", R.mipmap.ic_launcher_round));
-        itemList.add(new MainItemBean("GIF动画", R.mipmap.ic_launcher_round));
-        itemList.add(new MainItemBean("镜像视频", R.mipmap.ic_launcher_round));
-        itemList.add(new MainItemBean("视频倒放", R.mipmap.ic_launcher_round));
-        mList.add(itemList);
-
-        itemList = new ArrayList<>();
-        itemList.add(new MainItemBean("人像动漫", R.mipmap.ic_launcher_round));
-        itemList.add(new MainItemBean("精美滤镜", R.mipmap.ic_launcher_round));
-        itemList.add(new MainItemBean("测试", R.mipmap.ic_launcher_round));
-        mList.add(itemList);
-
-        mList.add(new MainDividerBean());
-
-        mMainAdapterRV.setList(mList);
+    @Override
+    public void showList(List list) {
+        mMainAdapterRV.setList(list);
     }
 
+    @Override
+    public void gotoVideoEditActivity() {
+        VideoHandleActivity_Java.start(this);
+    }
+
+    @Override
+    public void gotoTestActivity() {
+        startActivity(new Intent(this, TestActivity.class));
+    }
+
+    @Override
+    public void showToast(String message) {
+        U_Toast.show(message);
+    }
+
+    @Override
+    public void showLoading(String message) {
+        mProgressLl.setVisibility(View.VISIBLE);
+        mProgressTv.setText(message);
+    }
+
+    @Override
+    public void hideLoading() {
+        mProgressLl.setVisibility(View.GONE);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mPresenter.onDestroy();
+    }
 }

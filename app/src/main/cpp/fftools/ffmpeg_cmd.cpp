@@ -76,7 +76,9 @@ cancelTaskJNI(JNIEnv *env, jobject thiz, jint cancel) {
 
 // native -> java 进度回调
 void progress_callback(int position, int duration, int state) {
+//    XLOGD("进度回调 %d---%d---%d", position, duration, state);
     if (globalCtx.env && globalCtx.progressMID) {
+//        XLOGD("进度回调 CallVoidMethod");
         globalCtx.env->CallVoidMethod(globalCtx.ffmpegCmdObj, globalCtx.progressMID, position,
                                       duration, state);
     }

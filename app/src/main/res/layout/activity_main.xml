@@ -28,4 +28,32 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/title_tv" />
+
+    <LinearLayout
+        android:id="@+id/progress_ll"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#88FFFFFF"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/progress_tv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:gravity="center"
+            android:textColor="@color/colorPrimary"
+            android:textSize="16sp"
+            tools:text="100%" />
+    </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

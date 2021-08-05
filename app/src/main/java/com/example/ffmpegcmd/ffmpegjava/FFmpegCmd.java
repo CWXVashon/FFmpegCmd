@@ -1,5 +1,7 @@
 package com.example.ffmpegcmd.ffmpegjava;
 
+import android.util.Log;
+
 import androidx.annotation.Keep;
 
 import com.example.ffmpegcmd.util.ThreadPoolExecutor;
@@ -17,7 +19,7 @@ public class FFmpegCmd {
     private static final int STATE_ERROR = 3;
 
     private static FFmpegCmd sFFmpegCmd;
-    private OnHandleListener mListener;
+    private static OnHandleListener mListener;
 
     private FFmpegCmd() {
     }
@@ -37,7 +39,7 @@ public class FFmpegCmd {
     }
 
     public void executeFFmpeg(String[] commands, OnHandleListener handleListener) {
-        mListener = handleListener;
+        mListener = handleListener; // mListener必须为静态变量，否则下面进度回调时，由于线程上下文不同会导致 mListener 为 Null
         ThreadPoolExecutor.INSTANCE.executeSingleThreadPool(new Runnable() {
             @Override
             public void run() {
@@ -56,10 +58,12 @@ public class FFmpegCmd {
 
     /**
      * native 层自动回调这个方法
+     *
      * @param state 0-初始化，1-运行中，2-运行结束，3-运行错误
      */
     @Keep
     private void onProgressCallback(int position, int duration, int state) {
+//        Log.e("----------", String.format("onProgressCallback---%d---%d---%d", position, duration, state));
         if (position > duration && duration > 0)
             return;
         if (mListener != null) {
@@ -76,6 +80,7 @@ public class FFmpegCmd {
 
     /**
      * native 层自动回调这个方法
+     *
      * @param message
      */
     @Keep
