@@ -13,6 +13,7 @@ public class TestBean {
     //测试在线mp3,34秒
     public static String mp3Url = "https://m3.8js.net:99//20181222/xuemaojiao%20xiaofengfeng%20xiaopanpan.mp3";
     public static String localMp3Url = U_file.SDROOT + "/Android/data/com.example.ffmpegcmd/cache/source.mp3";
+    public static String downloadMp3Url = U_file.DOWNLOADS + "/source.mp3";
 
     //输出文件名
     public static String outputMp4Name = "ff_" + U_time.getNowTimeLong() + ".mp4";

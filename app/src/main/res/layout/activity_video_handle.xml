@@ -17,15 +17,20 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <TextView
-        android:id="@+id/ffprobe_msg_tv"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:gravity="start"
-        android:text="视频编辑"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/test_ffprobe_btn" />
+        app:layout_constraintTop_toBottomOf="@id/test_ffprobe_btn">
+
+        <TextView
+            android:id="@+id/ffprobe_msg_tv"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="start"
+            android:text="视频编辑" />
+    </ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

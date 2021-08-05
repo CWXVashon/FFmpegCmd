@@ -8,21 +8,20 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.ffmpegcmd.bean.TestBean;
+import com.example.ffmpegcmd.databinding.ActivityEditBinding;
 import com.example.ffmpegcmd.ffmpegjava.FFmpegCmd;
 import com.example.ffmpegcmd.ffmpegjava.OnHandleListener;
+import com.example.ffmpegcmd.util.FFmpegAudioUtils;
+import com.example.ffmpegcmd.util.FFmpegInfoUtils;
 import com.example.ffmpegcmd.util.FFmpegUtils;
 
 import java.io.File;
+import java.util.List;
 import java.util.Map;
 
 import x.com.base.toast.U_Toast;
 import x.com.dialog.CProgressDialog;
-import x.com.fliepick.bean.FileBean;
-import x.com.fliepick.bean.MediaSelectListener;
-import x.com.fliepick.media.CMediaPickDialog;
 import x.com.log.ViseLog;
-import x.com.media.U_mediaList;
-import x.com.util.U_file;
 import x.com.util.U_permissions;
 
 public class TestActivity extends AppCompatActivity {
@@ -31,6 +30,7 @@ public class TestActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         U_permissions.applyStoragePermission11(this, new U_permissions.RequestPermissionCallBack() {
             @Override
             public void requestPermissionSuccess() {
@@ -42,7 +42,7 @@ public class TestActivity extends AppCompatActivity {
 //                    }
 //                }).startSelectVideo(TestActivity.this);
 
-//                U_file.copyFile(TestBean.localMp3Url, TestBean.outputFolder(TestActivity.this) + "source.mp3", true);
+//                U_file.copyFile(TestBean.localMp3Url, TestBean.downloadMp3Url , true);
 
                 File srcFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "source.mp3");
                 File targetFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), TestBean.outputMp3Name);
@@ -54,8 +54,9 @@ public class TestActivity extends AppCompatActivity {
                 String srcPath = srcFile.getAbsolutePath();
                 String targetPath = targetFile.getAbsolutePath();
 
-                String[] cmd = FFmpegUtils.cutAudio(srcPath, 3, 8, targetPath);
-//                String[] cmd = FFmpegUtils.cutAudio(TestBean.localMp3Url, 3, 8, TestBean.outputFolder(TestActivity.this) + TestBean.outputMp3Name);
+//                String[] cmd = FFmpegInfoUtils.ffmpegFormat();
+//                String[] cmd = FFmpegUtils.cutAudio(TestBean.localMp3Url, 3, 8, targetPath);
+                String[] cmd = FFmpegAudioUtils.cutAudio(TestBean.localMp3Url, "00:00:10", "00:00:30", TestBean.outputFolder(TestActivity.this) + TestBean.outputMp3Name);
                 ViseLog.d(cmd);
                 FFmpegCmd.getInstance().executeFFmpeg(cmd, new OnHandleListener() {
                     @Override
@@ -81,9 +82,11 @@ public class TestActivity extends AppCompatActivity {
             }
 
             @Override
-            public void requestPermissionFail(Map<String, Boolean> failPermission) {
+            public void requestPermissionFail(List<String> failPermission) {
 
             }
+
+
         });
     }
 }

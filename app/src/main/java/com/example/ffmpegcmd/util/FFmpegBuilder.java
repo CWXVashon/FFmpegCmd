@@ -3,8 +3,6 @@ package com.example.ffmpegcmd.util;
 import java.util.ArrayList;
 import java.util.List;
 
-import x.com.util.U_time;
-
 /**
  * ffmpeg命令构建
  */
@@ -33,7 +31,7 @@ public class FFmpegBuilder {
     //添加起始时间，单位毫秒
     public FFmpegBuilder addStartTime(long time) {
         cmd.add("-ss");
-        cmd.add(U_time.convertLongToTime(time / 1000, U_time.HH_mm_ss));
+        cmd.add(String.valueOf(time / 1000));
         return this;
     }
 
@@ -47,7 +45,7 @@ public class FFmpegBuilder {
     //添加截止时间
     public FFmpegBuilder addToTime(long time) {
         cmd.add("-to");
-        cmd.add(U_time.convertLongToTime(time / 1000, U_time.HH_mm_ss));
+        cmd.add(String.valueOf(time / 1000));
         return this;
     }
 
@@ -61,7 +59,7 @@ public class FFmpegBuilder {
     //添加持续时间
     public FFmpegBuilder addDurationTime(long time) {
         cmd.add("-t");
-        cmd.add(U_time.convertLongToTime(time / 1000, U_time.HH_mm_ss));
+        cmd.add(String.valueOf(time / 1000));
         return this;
     }
 
@@ -140,11 +138,13 @@ public class FFmpegBuilder {
         return this;
     }
 
+    //不处理视频
     public FFmpegBuilder addVn() {
         cmd.add("-vn");
         return this;
     }
 
+    //不处理音频
     public FFmpegBuilder addAn() {
         cmd.add("-an");
         return this;

@@ -75,5 +75,6 @@ dependencies {
     implementation "androidx.recyclerview:recyclerview:1.2.1"
     implementation 'com.blankj:utilcodex:1.30.6'
 
-    implementation "io.github.luoqqsh:dialog:1.2.85"
+    implementation "io.github.luoqqsh:dialog:1.2.86"
+    implementation 'io.github.luoqqsh:cvplayer:1.0.1'
 }

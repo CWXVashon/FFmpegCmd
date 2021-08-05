@@ -1,42 +1,29 @@
 package com.example.ffmpegcmd.ui;
 
-import androidx.annotation.NonNull;
+import android.Manifest;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.Manifest;
-import android.content.pm.PackageManager;
-import android.os.Build;
-import android.content.Intent;
-import android.os.Bundle;
-import android.os.Environment;
-import android.util.Log;
-import android.view.View;
-import android.widget.LinearLayout;
-import android.widget.TextView;
-
 import com.example.ffmpegcmd.adapter.MainAdapterRV;
-import com.example.ffmpegcmd.bean.MainDividerBean;
-import com.example.ffmpegcmd.bean.MainItemBean;
-import com.example.ffmpegcmd.bean.MainTitleBean;
-import com.example.ffmpegcmd.R;
 import com.example.ffmpegcmd.databinding.ActivityMainBinding;
-import com.example.ffmpegcmd.ffmpegjava.FFmpegCmd;
-import com.example.ffmpegcmd.ffmpegjava.OnHandleListener;
 import com.example.ffmpegcmd.presenter.MainPresenter;
 import com.example.ffmpegcmd.ui.iview.IMainView;
-import com.example.ffmpegcmd.util.FFmpegUtils;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
 import x.com.base.toast.U_Toast;
-import x.com.log.ViseLog;
 
 public class MainActivity extends AppCompatActivity implements IMainView {
 

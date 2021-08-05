@@ -32,6 +32,7 @@
             android:launchMode="singleTop"
             android:screenOrientation="portrait" />
         <activity android:name=".ui.TestActivity" />
+        <activity android:name=".ui.VideoEditActivity" />
     </application>
 
 </manifest>
