@@ -55,7 +55,6 @@ runFFprobe(JNIEnv *env, jobject thiz, jobjectArray array) {
         auto js = (jstring) env->GetObjectArrayElement(array, i);
         jsa[i] = js;
         argv[i] = (char *) env->GetStringUTFChars(js, 0);
-        XLOGD("%s", argv[i]);
     }
     // 运行 ffprobe 命令行
     char *jsonStr = run_ffprobe(argc, argv);

@@ -51,11 +51,20 @@ public class VideoHandleActivity_Java extends AppCompatActivity implements View.
         mFFmpegHandler = new FFmpegHandler(mVideoHandler);
     }
 
+    int num = 0;
+
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.test_ffprobe_btn:
-                File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "cat.mp4");
+                String fileName;
+                if (num % 2 == 0) {
+                    fileName = "cat.mp4";
+                } else {
+                    fileName = "rabbit.mp4";
+                }
+                num++;
+                File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName);
                 if (file.exists()) {
                     Log.e("--------------", "文件存在");
                 } else {

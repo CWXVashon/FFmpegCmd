@@ -21,8 +21,10 @@ import com.example.ffmpegcmd.util.SaveFileUtils;
 import com.example.ffmpegcmd.util.ThreadPoolExecutor;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import x.com.log.ViseLog;
 
@@ -139,7 +141,13 @@ public class MainPresenter extends BasePresenter<IMainView> {
                 mView.gotoTestActivity();
                 break;
             case "视频拼接":
-                videoConcat();
+                File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                File file1 = new File(downloadDir, "cat.mp4");
+                File file2 = new File(downloadDir, "rabbit.mp4");
+                List<File> filePaths = new ArrayList<>();
+                filePaths.add(file1);
+                filePaths.add(file2);
+                videoConcat(filePaths);
                 break;
             case "视频倒放":
                 videoReverse();
@@ -148,11 +156,59 @@ public class MainPresenter extends BasePresenter<IMainView> {
         }
     }
 
-    private void videoConcat() {
-        // TODO: 2021/8/5 vashon 
-        // 1.通过 ffprobe 获取视频流的信息与格式
-        // 2.将视频转码为同一格式、宽高
-        // 3.拼接视频
+    private void videoConcat(List<File> filePaths) {
+        if (filePaths == null || filePaths.size() < 2)
+            return;
+        List<String> existFiles = new ArrayList<>();
+        for (File file : filePaths) {
+            if (file.exists())
+                existFiles.add(file.getAbsolutePath());
+        }
+        if (existFiles.size() < 2)
+            return;
+        File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        // 存放多个视频文件路径的文本文件
+        File fileList = new File(downloadDir, "fileList.txt");
+        if (!fileList.exists()) {
+            try {
+                if (!fileList.createNewFile())
+                    return;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        // 存放转码后的临时文件的临时目录
+        File tmpDir = new File(downloadDir, "tmpDir");
+        if (tmpDir.exists()) {
+            File[] files = tmpDir.listFiles();
+            if (files != null && files.length > 0) {
+                for (File file : files) {
+                    if (file.isFile()) file.delete();
+                }
+            }
+        } else {
+            if (!tmpDir.mkdir())
+                return;
+        }
+        // 生成输出文件路径列表
+        List<String> tmpFiles = new ArrayList<>();
+        for (int i = 0; i < existFiles.size(); i++) {
+            tmpFiles.add(tmpDir.getAbsolutePath() + File.separator + String.format(Locale.getDefault(), "tmp_file_%d", i));
+        }
+        // 存放命令集的列表
+        List<String[]> commandList = new ArrayList<>();
+        String firstFile = existFiles.remove(0);
+        // 1.统一视频编码与音频编码，视频：libx264、音频：aac，并将第一个视频转码
+        commandList.add(FFmpegUtils.transformVideoWithEncode(firstFile, tmpFiles.get(0)));
+        // 2.通过 ffprobe 获取第一个视频的流信息与格式，得到宽高
+        String json = FFmpegCmd.getInstance().executeFFprobe(FFmpegUtils.probeFormat(tmpFiles.get(0)));
+
+
+        // TODO: 2021/8/5 vashon
+        // 1.统一视频编码与音频编码，视频：libx264、音频：aac，并将第一个视频转码
+        // 2.通过 ffprobe 获取第一个视频的流信息与格式，得到宽高
+        // 3.将需要拼接的视频统一转码并设置宽高为第一视频的宽高
+        // 4.拼接视频
     }
 
     private void videoReverse() {

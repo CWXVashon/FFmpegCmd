@@ -52,7 +52,7 @@ public class FFmpegCmd {
         });
     }
 
-    String executeFFprobe(String[] commands) {
+    public String executeFFprobe(String[] commands) {
         return runFFprobe(commands);
     }
 

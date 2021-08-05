@@ -412,7 +412,7 @@ object FFmpegUtils {
     }
 
     @JvmStatic
-    fun image2Video(srcDir: String?,  format: String?,
+    fun image2Video(srcDir: String?, format: String?,
                     targetFile: String?): Array<String?> {
         //-f image2：代表使用image2格式，需要放在输入文件前面
         // ffmpeg  -f image2 -i image-%3d.jpeg images.mp4
@@ -475,7 +475,7 @@ object FFmpegUtils {
 //                [c][3:v]overlay=w:h\" %s";
         var command = "ffmpeg -y -i %s -i %s -filter_complex hstack %s" //hstack:水平拼接，默认
 //        if (direction == Direction.LAYOUT_VERTICAL) { //vstack:垂直拼接
-            command = command.replace("hstack", "vstack")
+        command = command.replace("hstack", "vstack")
 //        }
         command = String.format(command, input1, input2, targetFile)
         return command.split(" ").toTypedArray()
@@ -902,9 +902,9 @@ object FFmpegUtils {
      * @param url 推流地址
      */
     @JvmStatic
-    fun rtmp(src: String?, url:String?):Array<String?>{
+    fun rtmp(src: String?, url: String?): Array<String?> {
         var command = "ffmpeg -re -i %s -f flv %s"
-        command = String.format(command, src,url)
+        command = String.format(command, src, url)
         return command.split(" ").toTypedArray()
     }
 
@@ -919,5 +919,45 @@ object FFmpegUtils {
         var ffprobeCmd = "ffprobe -i %s -show_streams -show_format -print_format json"
         ffprobeCmd = String.format(Locale.getDefault(), ffprobeCmd, inputPath)
         return ffprobeCmd.split(" ").toTypedArray()
+    }
+
+    /**
+     * 通过 ffmpeg 对视频重新编码
+     */
+    @JvmStatic
+    fun transformVideoWithEncode(inputPath: String?, outputPath: String?): Array<String?>? {
+        return transformVideoWithEncode(inputPath, 0, 0, outputPath)
+    }
+
+    /**
+     * 通过 ffmpeg 对视频重新编码
+     *
+     * @param inputPath  源文件
+     * @param width      视频的宽
+     * @param height     视频的高
+     * @param outputPath 编码后的文件
+     */
+    @JvmStatic
+    fun transformVideoWithEncode(inputPath: String?, width: Int, height: Int, outputPath: String?): Array<String?> {
+        var transformVideoCmd: String = if (width > 0 && height > 0) {
+            val scale = "-vf scale=$width:$height"
+            "ffmpeg -i %s -vcodec libx264 -acodec aac $scale %s"
+        } else {
+            "ffmpeg -i %s -vcodec libx264 -acodec aac " + "%s"
+        }
+        transformVideoCmd = String.format(transformVideoCmd, inputPath, outputPath)
+        return transformVideoCmd.split(" ".toRegex()).toTypedArray()
+    }
+
+    /**
+     * 将多个视频合并为一个视频
+     * @param fileListPath 视频文件列表
+     * @param outputPath   输出文件
+     */
+    @JvmStatic
+    fun jointVideo(fileListPath: String?, outputPath: String?): Array<String?> {
+        var jointVideoCmd = "ffmpeg -f concat -safe 0 -i %s -c copy %s"
+        jointVideoCmd = String.format(jointVideoCmd, fileListPath, outputPath)
+        return jointVideoCmd.split(" ".toRegex()).toTypedArray()
     }
 }

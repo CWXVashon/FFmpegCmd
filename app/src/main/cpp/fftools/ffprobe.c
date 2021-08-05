@@ -3782,6 +3782,7 @@ char *run_ffprobe(int argc, char **argv) {
     int ret, i;
 
     // TODO:----- 新增代码 -----
+    input_filename = NULL;
     buffer_length = 0;
     size_t size = sizeof(char) * buffer_size;
     if (print_buffer == NULL) {
