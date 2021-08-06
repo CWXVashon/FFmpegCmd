@@ -6,6 +6,8 @@ import androidx.annotation.Keep;
 
 import com.example.ffmpegcmd.util.ThreadPoolExecutor;
 
+import java.util.List;
+
 import x.com.log.ViseLog;
 
 /**
@@ -38,6 +40,7 @@ public class FFmpegCmd {
         System.loadLibrary("media_handle");
     }
 
+    // 同时执行单条命令
     public void executeFFmpeg(String[] commands, OnHandleListener handleListener) {
         mListener = handleListener; // mListener必须为静态变量，否则下面进度回调时，由于线程上下文不同会导致 mListener 为 Null
         ThreadPoolExecutor.INSTANCE.executeSingleThreadPool(new Runnable() {
@@ -47,6 +50,27 @@ public class FFmpegCmd {
                     handleListener.onStart();
                     ViseLog.d(runFFmpeg(commands));
                     handleListener.onFinish();
+                }
+                mListener = null;
+            }
+        });
+    }
+
+    // 同时执行多条命令
+    public void executeFFmpeg(List<String[]> commands, OnHandleListener handleListener) {
+        mListener = handleListener; // mListener必须为静态变量，否则下面进度回调时，由于线程上下文不同会导致 mListener 为 Null
+        ThreadPoolExecutor.INSTANCE.executeSingleThreadPool(new Runnable() {
+            @Override
+            public void run() {
+                if (handleListener != null) {
+                    handleListener.onStart();
+                    int result = 0, count = 0;
+                    for (String[] command : commands) {
+                        result = runFFmpeg(command);
+                        Log.i("--------------", "result = " + result + " --- count = " + (++count));
+                    }
+                    handleListener.onFinish();
+                    mListener = null;
                 }
             }
         });

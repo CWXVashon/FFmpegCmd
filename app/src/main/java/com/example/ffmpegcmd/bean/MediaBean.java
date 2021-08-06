@@ -14,4 +14,8 @@ public class MediaBean {
     public String formatName;
     // "nb_streams": 2
     public int streamNum;
+
+    public VideoBean videoBean;
+
+    public AudioBean audioBean;
 }

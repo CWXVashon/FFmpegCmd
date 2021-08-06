@@ -2,6 +2,8 @@ package com.example.ffmpegcmd.ffmpegjava;
 
 import android.os.Handler;
 
+import java.util.List;
+
 /**
  * Created by Vashon on 2021/8/2.
  */
@@ -19,6 +21,32 @@ public class FFmpegHandler {
     }
 
     public void executeFFmpegCmd(String[] commands) {
+        if (mHandler != null) {
+            FFmpegCmd.getInstance().executeFFmpeg(commands, new OnHandleListener() {
+                @Override
+                public void onStart() {
+                    mHandler.obtainMessage(STATE_START).sendToTarget();
+                }
+
+                @Override
+                public void onMessage(String message) {
+                    mHandler.obtainMessage(STATE_MESSAGE, message).sendToTarget();
+                }
+
+                @Override
+                public void onProgress(int position, int duration) {
+                    mHandler.obtainMessage(STATE_PROGRESS, position, duration).sendToTarget();
+                }
+
+                @Override
+                public void onFinish() {
+                    mHandler.obtainMessage(STATE_FINISH).sendToTarget();
+                }
+            });
+        }
+    }
+
+    public void executeFFmpegCmd(List<String[]> commands) {
         if (mHandler != null) {
             FFmpegCmd.getInstance().executeFFmpeg(commands, new OnHandleListener() {
                 @Override
