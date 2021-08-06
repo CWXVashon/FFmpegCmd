@@ -22,6 +22,7 @@ set(FFMPEG_CMD_SRC
         ${FFMPEG_CMD_DIR}/ffprobe.c
         ${FFMPEG_CMD_DIR}/ffmpeg_cmd.cpp
         ${FFMPEG_CMD_DIR}/ffmpeg_api.cpp
+        ${FFMPEG_CMD_DIR}/media_player.cpp
         )
 add_library(media_handle SHARED ${FFMPEG_CMD_SRC})
 
