@@ -117,6 +117,16 @@ public class MainActivity extends AppCompatActivity implements IMainView {
     }
 
     @Override
+    public void operateStart() {
+
+    }
+
+    @Override
+    public void operateEnd() {
+        mPresenter.releaseSource();
+    }
+
+    @Override
     public void showToast(String message) {
         U_Toast.show(message);
     }

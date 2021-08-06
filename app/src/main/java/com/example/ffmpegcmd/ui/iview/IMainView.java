@@ -13,4 +13,14 @@ public interface IMainView extends IView {
 
     void gotoTestActivity();
     void gotoEditActivity();
+
+    /**
+     * 视频操作开始
+     */
+    void operateStart();
+
+    /**
+     * 视频操作结束
+     */
+    void operateEnd();
 }

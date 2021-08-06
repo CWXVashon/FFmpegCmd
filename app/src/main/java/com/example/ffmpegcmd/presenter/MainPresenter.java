@@ -4,6 +4,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -21,6 +22,7 @@ import com.example.ffmpegcmd.util.JsonUtils;
 import com.example.ffmpegcmd.util.FileUtils;
 import com.example.ffmpegcmd.util.ThreadPoolExecutor;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -37,6 +39,8 @@ public class MainPresenter extends BasePresenter<IMainView> {
     private FFmpegHandler mFFmpegHandler;
     private List mList;
 
+    private String mOperateType = "";
+
     private static class MainHandler extends Handler {
 
         private IMainView mView;
@@ -51,7 +55,8 @@ public class MainPresenter extends BasePresenter<IMainView> {
             if (mView != null) {
                 switch (msg.what) {
                     case FFmpegHandler.STATE_START:
-                        mView.showToast("转码开始");
+                        mView.showToast("操作开始");
+                        mView.operateStart();
                         break;
                     case FFmpegHandler.STATE_MESSAGE:
                         mView.showToast((String) msg.obj);
@@ -63,7 +68,8 @@ public class MainPresenter extends BasePresenter<IMainView> {
                         break;
                     case FFmpegHandler.STATE_FINISH:
                         mView.hideLoading();
-                        mView.showToast("转码完成");
+                        mView.showToast("操作完成");
+                        mView.operateEnd();
                         break;
                     default:
                         mView.showToast("未知信息");
@@ -134,6 +140,7 @@ public class MainPresenter extends BasePresenter<IMainView> {
     }
 
     public void handleMedia(String name) {
+        mOperateType = name;
         switch (name) {
             case "视频编辑":
                 mView.gotoVideoEditActivity();
@@ -148,13 +155,15 @@ public class MainPresenter extends BasePresenter<IMainView> {
                 File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
                 File file1 = new File(downloadDir, "cat.mp4");
                 File file2 = new File(downloadDir, "rabbit.mp4");
-                List<File> filePaths = new ArrayList<>();
-                filePaths.add(file1);
-                filePaths.add(file2);
+                List<String> filePaths = new ArrayList<>();
+                filePaths.add(file1.getAbsolutePath());
+                filePaths.add(file2.getAbsolutePath());
                 videoConcat(filePaths, new File(downloadDir, "target.mp4").getAbsolutePath());
                 break;
             case "视频倒放":
-                videoReverse();
+                videoReverse(
+                        new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "rabbit.mp4").getAbsolutePath(),
+                        new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "reverse.mp4").getAbsolutePath());
                 break;
             default:
         }
@@ -164,33 +173,24 @@ public class MainPresenter extends BasePresenter<IMainView> {
      * 拼接视频
      *
      * @param filePaths      需要拼接的文件路径列表
-     * @param targetFilePath 生成的文件存放的绝对路径，含文件名
+     * @param targetFilePath 生成的文件存放的绝对路径（含文件名）
      */
-    private void videoConcat(List<File> filePaths, String targetFilePath) {
-        // TODO: 2021/8/6  暂时没判断是否媒体文件，待完善
-        if (filePaths == null || filePaths.size() < 2)
-            return;
+    private void videoConcat(List<String> filePaths, String targetFilePath) {
+        if (filePaths == null || filePaths.size() < 2 || TextUtils.isEmpty(targetFilePath)) return;
         List<String> existFiles = new ArrayList<>();
-        for (File file : filePaths) {
-            if (file.exists())
-                existFiles.add(file.getAbsolutePath());
-        }
-        if (existFiles.size() < 2)
-            return;
-        File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-        // 存放多个视频文件路径的文本文件
-        if (!FileUtils.createFileByName(downloadDir, "fileList.txt", false))
-            return;
+        for (String path : filePaths)
+            if (FileUtils.isVideo(path)) existFiles.add(path);
+        if (existFiles.size() < 2) return;
         // 存放转码后的临时文件的临时目录
-        if (!FileUtils.createFileByName(downloadDir, "tmpDir", true))
-            return;
-        String fileListPath = downloadDir.getAbsolutePath() + File.separator + "fileList.txt";
-        String tmpDirPath = downloadDir.getAbsolutePath() + File.separator + "tmpDir";
-        // 生成输出文件路径列表
+        String tmpDirPath = FileUtils.TMP_DIR_PATH;
+        if (!FileUtils.createFileByName(tmpDirPath, true)) return;
+        // 存放多个视频文件路径的文本文件
+        String fileListPath = tmpDirPath + File.separator + "fileList.txt";
+        if (!FileUtils.createFileByName(fileListPath, false)) return;
+        // 输出临时文件路径列表
         List<String> tmpFiles = new ArrayList<>();
-        for (int i = 0; i < existFiles.size(); i++) {
+        for (int i = 0; i < existFiles.size(); i++)
             tmpFiles.add(tmpDirPath + File.separator + String.format(Locale.getDefault(), "tmp_file_%d.ts", i));
-        }
         // 存放命令集的列表
         List<String[]> commandList = new ArrayList<>();
         String firstFile = existFiles.remove(0);
@@ -199,47 +199,32 @@ public class MainPresenter extends BasePresenter<IMainView> {
         // 2.通过 ffprobe 获取第一个视频的流信息与格式，得到宽高
         String json = FFmpegCmd.getInstance().executeFFprobe(FFmpegUtils.probeFormat(firstFile));
         MediaBean mediaBean = JsonUtils.parseMediaFormat(json);
-        if (mediaBean.videoBean == null)
-            return;
+        if (mediaBean.videoBean == null) return;
         // 3.将需要拼接的视频统一转码并设置宽高为第一视频的宽高
-        for (int i = 0; i < existFiles.size(); i++) {
+        for (int i = 0; i < existFiles.size(); i++)
             commandList.add(FFmpegUtils.transformVideoWithEncode(
                     existFiles.get(i), mediaBean.videoBean.width, mediaBean.videoBean.height, tmpFiles.get(i + 1)));
-        }
         // 4.拼接视频
         // 4.1格式化需要拼接的文件列表
         StringBuilder builder = new StringBuilder();
-        for (String file : tmpFiles) {
+        for (String file : tmpFiles)
             builder.append("file ").append("'").append(file).append("'").append(System.getProperty("line.separator"));
-        }
         // 4.2将转码后的文件路径以特定格式存放到一个文件
-        FileWriter fos = null;
-        try {
-            fos = new FileWriter(fileListPath);
-            fos.write(builder.toString());
-            fos.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            FileUtils.closeStream(fos);
-        }
+        if (!FileUtils.writeContent2File(fileListPath, builder.toString())) return;
         // 4.3生成拼接命令
         commandList.add(FFmpegUtils.jointVideo(fileListPath, targetFilePath));
         mFFmpegHandler.executeFFmpegCmd(commandList);
     }
 
-    private void videoReverse() {
-        File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-        File srcFile = new File(downloadDir, "cat.mp4");
-        File targetFile = new File(downloadDir, "reverse.mp4");
-        if (srcFile.exists()) {
-            Log.e("--------------", "文件存在");
-        } else {
-            Log.e("--------------", "文件不存在");
-        }
-        String srcPath = srcFile.getAbsolutePath();
-        String targetPath = targetFile.getAbsolutePath();
-        mFFmpegHandler.executeFFmpegCmd(FFmpegUtils.reverseVideo(srcPath, targetPath));
+    /**
+     * 视频倒放
+     *
+     * @param sourceFilePath 源文件路径
+     * @param targetFilePath 目标文件路径
+     */
+    private void videoReverse(String sourceFilePath, String targetFilePath) {
+        if (!FileUtils.isVideo(sourceFilePath) || TextUtils.isEmpty(targetFilePath)) return;
+        mFFmpegHandler.executeFFmpegCmd(FFmpegUtils.reverseVideo(sourceFilePath, targetFilePath));
     }
 
     // 将 assets 文件夹的测试文件保存在指定路径
@@ -252,6 +237,16 @@ public class MainPresenter extends BasePresenter<IMainView> {
                 FileUtils.saveAssetsFileToPath(downloadDir, "rabbit.mp4");
             }
         });
+    }
+
+    // 释放不需要的资源
+    public void releaseSource() {
+        switch (mOperateType) {
+            case "视频拼接":
+                // 拼接完成，将临时目录与文件删除
+                FileUtils.deleteFolderContainSelf(new File(FileUtils.TMP_DIR_PATH));
+                break;
+        }
     }
 
     @Override
