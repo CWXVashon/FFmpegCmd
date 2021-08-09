@@ -31,6 +31,7 @@
 
         <Button
             android:id="@+id/exportBtn"
+            android:onClick="exportVideo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="导出" />
@@ -63,7 +64,9 @@
         android:id="@+id/playerLayout"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:layout_gravity="center"
         android:layout_weight="1"
+        android:layout_marginBottom="@dimen/dp10"
         android:background="#ff202020" />
 
     <LinearLayout

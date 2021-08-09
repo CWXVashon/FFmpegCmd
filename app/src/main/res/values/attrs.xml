@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="ChooseAreaView">
+        <attr name="connerColorCa" format="reference|color" />
+        <attr name="connerWidthCa" format="dimension" />
+        <attr name="connerLengthCa" format="dimension" />
+        <attr name="isFocusAutoCa" format="boolean" />
+        <attr name="scaleWidthOfHeightCa" format="float" />
+    </declare-styleable>
+</resources>
