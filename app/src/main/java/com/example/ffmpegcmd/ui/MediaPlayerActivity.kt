@@ -8,6 +8,7 @@ import com.blankj.utilcode.util.FileUtils
 import com.example.ffmpegcmd.BaseActivity
 import com.example.ffmpegcmd.R
 import com.example.ffmpegcmd.mediaplayer.MediaPlayer
+import com.example.ffmpegcmd.util.ThreadPoolExecutor
 
 class MediaPlayerActivity: BaseActivity(), SurfaceHolder.Callback {
 
@@ -47,14 +48,16 @@ class MediaPlayerActivity: BaseActivity(), SurfaceHolder.Callback {
         if (!FileUtils.isFileExists(filePath)){
             return
         }
-
         if (surfaceCreated){
-            startPlay(filePath)
+            ThreadPoolExecutor.executeSingleThreadPool(Runnable {
+                startPlay(filePath)
+            })
         }
     }
 
     private fun startPlay(path: String) {
-        mediaPlayer?.setDataSource(path, surfaceHolder)
+        mediaPlayer?.setDataSource(path, surfaceHolder?.surface)
+        mediaPlayer?.start()
     }
 
     override fun surfaceCreated(holder: SurfaceHolder) {
