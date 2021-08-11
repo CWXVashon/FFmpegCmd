@@ -177,48 +177,6 @@ object FFmpegUtils {
                 .toTypedArray()
     }
 
-    /**
-     * 使用ffmpeg命令行进行视频剪切(不包含)
-     *
-     * @param srcFile    源文件
-     * @param startTime  剪切的开始时间(单位为秒)
-     * @param duration   剪切时长(单位为秒)
-     * @param targetFile 目标文件
-     * @return 剪切后的文件
-     */
-    @SuppressLint("DefaultLocale")
-    @JvmStatic
-    fun cutVideo(
-            srcFile: String?, startTime: Int, duration: Int,
-            targetFile: String?
-    ): Array<String?> {
-        var command = "ffmpeg -y -i %s -ss %d -t %d -c copy %s"
-        command = String.format(command, srcFile, startTime, duration, targetFile)
-        return command.split(" ") //以空格分割为字符串数组
-                .toTypedArray()
-    }
-
-    /**
-     * 使用ffmpeg命令行进行视频剪切(包含关键帧)
-     *
-     * @param srcFile    源文件
-     * @param startTime  剪切的开始时间(单位为秒)
-     * @param duration   剪切时长(单位为秒)
-     * @param targetFile 目标文件
-     * @return 剪切后的文件
-     */
-    @SuppressLint("DefaultLocale")
-    @JvmStatic
-    fun cutVideo2(
-            srcFile: String?, startTime: Int, duration: Int,
-            targetFile: String?
-    ): Array<String?> {
-        var command = "ffmpeg -y -ss %d -t %d -accurate_seek -i %s -codec copy " +
-                "-avoid_negative_ts 1 %s"
-        command = String.format(command, startTime, duration, srcFile, targetFile)
-        return command.split(" ") //以空格分割为字符串数组
-                .toTypedArray()
-    }
 
     /**
      * 使用ffmpeg命令行进行音频合并
