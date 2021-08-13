@@ -158,7 +158,7 @@ public class MainPresenter extends BasePresenter<IMainView> {
                 List<String> filePaths = new ArrayList<>();
                 filePaths.add(file1.getAbsolutePath());
                 filePaths.add(file2.getAbsolutePath());
-                videoConcat(640, 320, filePaths, new File(downloadDir, "target.mp4").getAbsolutePath());
+                videoConcat(1, 1, filePaths, new File(downloadDir, "target.mp4").getAbsolutePath());
                 break;
             case "视频倒放":
                 videoReverse(

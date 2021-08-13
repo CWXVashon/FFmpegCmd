@@ -948,9 +948,9 @@ object FFmpegUtils {
     fun transformVideoWithEncode(inputPath: String?, width: Int, height: Int, outputPath: String?): Array<String?> {
         var transformVideoCmd: String = if (width > 0 && height > 0) {
             val scale = "-vf scale=$width:$height"
-            "ffmpeg -i %s -vcodec libx264 -acodec aac $scale %s"
+            "ffmpeg -threads 4 -i %s -vcodec libx264 -acodec aac $scale %s"
         } else {
-            "ffmpeg -i %s -vcodec libx264 -acodec aac " + "%s"
+            "ffmpeg -threads 4 -i %s -vcodec libx264 -acodec aac " + "%s"
         }
         transformVideoCmd = String.format(transformVideoCmd, inputPath, outputPath)
         return transformVideoCmd.split(" ".toRegex()).toTypedArray()
@@ -963,7 +963,7 @@ object FFmpegUtils {
      */
     @JvmStatic
     fun jointVideo(fileListPath: String?, outputPath: String?): Array<String?> {
-        var jointVideoCmd = "ffmpeg -f concat -safe 0 -i %s -c copy %s"
+        var jointVideoCmd = "ffmpeg -threads 4 -f concat -safe 0 -i %s -c copy %s"
         jointVideoCmd = String.format(jointVideoCmd, fileListPath, outputPath)
         return jointVideoCmd.split(" ".toRegex()).toTypedArray()
     }
