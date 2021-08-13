@@ -22,13 +22,13 @@ import x.com.base.toast.U_Toast;
 import x.com.dialog.CProgressDialog;
 import x.com.fliepick.media.CMediaPickDialog;
 import x.com.log.ViseLog;
+import x.com.rxHttp.task.TaskDelayManager;
 import x.com.util.U_file;
 import x.com.util.U_time;
 
 public class VideoEditActivity extends VideoPlayerActivity {
     ActivityEditBinding binding;
     IncludeCutBinding cutBinding;
-    private String outputPath;
     private ChooseAreaView areaView;
     private CProgressDialog progressDialog;
     private long leftTimeMs, rightTimeMs;
@@ -66,38 +66,53 @@ public class VideoEditActivity extends VideoPlayerActivity {
         progressDialog.showDialog(this);
     }
 
-    //去预览
-    private void gotoPreview() {
-        PreviewActivity.start(this, outputPath);
+    @Override
+    public void initChooseUIWhenPrepare() {
+        new TaskDelayManager() {
+            @Override
+            public void onListen(Long index) {
+                player.removeExtraView(areaView);
+                areaView = new ChooseAreaView(VideoEditActivity.this);
+                player.addExtraView(areaView);
+                View playView = player.getPlayerView().findViewById(R.id.video_normal_id);
+                areaView.setLayoutSize(playView.getWidth(), playView.getHeight());
+            }
+        }.delay(200);
+
+    }
+
+    @Override
+    public void initChooseUI() {
+        binding.cutLayout.removeAllViews();
+        View cutView = LayoutInflater.from(this).inflate(R.layout.include_cut, null);
+        cutView.setTag("cutView");
+        RangeSeekBarView seekBar = cutView.findViewById(R.id.avt_seekBar);
+        seekBar.setAbsoluteMinValuePrim(0);
+        seekBar.setAbsoluteMaxValuePrim(fileBean.getVideoFileBean().getMediaDuration());
+        seekBar.setSelectedMinValue(0L);
+        seekBar.setSelectedMaxValue(fileBean.getVideoFileBean().getMediaDuration());
+        seekBar.setMin_cut_time(3);//设置最小裁剪时间
+        seekBar.setNotifyWhileDragging(true);
+        seekBar.setOnRangeSeekBarChangeListener(mOnRangeSeekBarChangeListener);
+        binding.cutLayout.addView(cutView, FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT);
+        cutBinding = IncludeCutBinding.bind(cutView);
+
     }
 
     public void cutBtn(View view) {
-        chooseAreaView();
-    }
-
-    private void chooseAreaView() {
-        if (areaView != null) {
-            player.removeExtraView(areaView);
-            areaView = null;
-        } else {
-            areaView = new ChooseAreaView(VideoEditActivity.this);
-            player.addExtraView(areaView);
-            View playView = player.getPlayerView().findViewById(R.id.video_normal_id);
-            areaView.setLayoutSize(playView.getWidth(), playView.getHeight());
-        }
-    }
-
-    public void exportVideo(View view) {
         //选取框取出来的是比例，要和视频宽高相乘得到实际的宽高数据
-//        float left = (areaView.getResultF()[0] * fileBean.getVideoFileBean().getVWidth());
-//        float top = (areaView.getResultF()[1] * fileBean.getVideoFileBean().getVHeight());
-//        float width = (areaView.getResultF()[2] - areaView.getResultF()[0]) * fileBean.getVideoFileBean().getVWidth();
-//        float height = (areaView.getResultF()[3] - areaView.getResultF()[1]) * fileBean.getVideoFileBean().getVHeight();
-//
-//        String[] cmd = FFmpegVideoUtils.cutVideoArea(fileBean.getFilePath(),
-//                width, height, left, top, U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
-        String[] cmd = FFmpegVideoUtils.cutVideoDurationWithFrame(fileBean.getFilePath(),
-                leftTimeMs, rightTimeMs - leftTimeMs, U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
+        float left = (areaView.getResultF()[0] * fileBean.getVideoFileBean().getVWidth());
+        float top = (areaView.getResultF()[1] * fileBean.getVideoFileBean().getVHeight());
+        float width = (areaView.getResultF()[2] - areaView.getResultF()[0]) * fileBean.getVideoFileBean().getVWidth();
+        float height = (areaView.getResultF()[3] - areaView.getResultF()[1]) * fileBean.getVideoFileBean().getVHeight();
+
+        String[] cmd = FFmpegVideoUtils.cutVideoArea(fileBean.getFilePath(),
+                width, height, left, top, U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
+        runFFmpeg(cmd);
+    }
+
+
+    public void runFFmpeg(String[] cmd) {
         ViseLog.d(cmd);
         initProgress();
         FFmpegCmd.getInstance().executeFFmpeg(cmd, new OnHandleListener() {
@@ -129,23 +144,43 @@ public class VideoEditActivity extends VideoPlayerActivity {
         });
     }
 
+    public void exportVideo(View view) {
+
+
+    }
+
     public void timeBtn(View view) {
-        if (binding.cutLayout.findViewWithTag("cutView") == null) {
-            View cutView = LayoutInflater.from(this).inflate(R.layout.include_cut, null);
-            cutView.setTag("cutView");
-            RangeSeekBarView seekBar = cutView.findViewById(R.id.avt_seekBar);
-            seekBar.setAbsoluteMinValuePrim(0);
-            seekBar.setAbsoluteMaxValuePrim(fileBean.getVideoFileBean().getMediaDuration());
-            seekBar.setSelectedMinValue(0L);
-            seekBar.setSelectedMaxValue(fileBean.getVideoFileBean().getMediaDuration());
-            seekBar.setMin_cut_time(3);//设置最小裁剪时间
-            seekBar.setNotifyWhileDragging(true);
-            seekBar.setOnRangeSeekBarChangeListener(mOnRangeSeekBarChangeListener);
-            binding.cutLayout.addView(cutView, FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT);
-            cutBinding = IncludeCutBinding.bind(cutView);
-        } else {
-            binding.cutLayout.removeAllViews();
-        }
+        String[] cmd = FFmpegVideoUtils.cutVideoDurationWithFrame(fileBean.getFilePath(),
+                leftTimeMs, rightTimeMs - leftTimeMs, U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
+        ViseLog.d(cmd);
+        initProgress();
+        FFmpegCmd.getInstance().executeFFmpeg(cmd, new OnHandleListener() {
+            @Override
+            public void onStart() {
+                U_Toast.show("开始");
+            }
+
+            @Override
+            public void onMessage(String message) {
+                ViseLog.d(message);
+            }
+
+            @Override
+            public void onProgress(int position, int duration) {
+                progressDialog.showProgress(position);
+                if (position == 100) {
+                    progressDialog.dismiss();
+                }
+                ViseLog.showLog(position + " " + duration);
+            }
+
+            @Override
+            public void onFinish() {
+                progressDialog.dismiss();
+                U_Toast.show("完成 " + U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
+                PreviewActivity.start(VideoEditActivity.this, U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
+            }
+        });
     }
 
     private long scrollPos;
@@ -185,4 +220,75 @@ public class VideoEditActivity extends VideoPlayerActivity {
             }
         }
     };
+
+    //倒放
+    public void invertedPlay(View view) {
+        initProgress();
+        String[] cmd = FFmpegVideoUtils.reverseVideo(fileBean.getFilePath(), U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
+        FFmpegCmd.getInstance().executeFFmpeg(cmd, new OnHandleListener() {
+            @Override
+            public void onStart() {
+                U_Toast.show("开始");
+            }
+
+            @Override
+            public void onMessage(String message) {
+                ViseLog.d(message);
+            }
+
+            @Override
+            public void onProgress(int position, int duration) {
+                progressDialog.showProgress(position);
+                if (position == 100) {
+                    progressDialog.dismiss();
+                }
+                ViseLog.showLog(position + " " + duration);
+            }
+
+            @Override
+            public void onFinish() {
+                progressDialog.dismiss();
+                U_Toast.show("完成 " + U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
+                PreviewActivity.start(VideoEditActivity.this, U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
+            }
+        });
+    }
+
+    //画中画
+    public void picInPic(View view) {
+        float left = (areaView.getResultF()[0] * fileBean.getVideoFileBean().getVWidth());
+        float top = (areaView.getResultF()[1] * fileBean.getVideoFileBean().getVHeight());
+        float width = (areaView.getResultF()[2] - areaView.getResultF()[0]) * fileBean.getVideoFileBean().getVWidth();
+        float height = (areaView.getResultF()[3] - areaView.getResultF()[1]) * fileBean.getVideoFileBean().getVHeight();
+
+        initProgress();
+        String[] cmd = FFmpegVideoUtils.picInPicVideo(fileBean.getFilePath(), fileBean.getFilePath(), (int) left, (int) top, U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
+        FFmpegCmd.getInstance().executeFFmpeg(cmd, new OnHandleListener() {
+            @Override
+            public void onStart() {
+                U_Toast.show("开始");
+            }
+
+            @Override
+            public void onMessage(String message) {
+                ViseLog.d(message);
+            }
+
+            @Override
+            public void onProgress(int position, int duration) {
+                progressDialog.showProgress(position);
+                if (position == 100) {
+                    progressDialog.dismiss();
+                }
+                ViseLog.showLog(position + " " + duration);
+            }
+
+            @Override
+            public void onFinish() {
+                progressDialog.dismiss();
+                U_Toast.show("完成 " + U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
+                PreviewActivity.start(VideoEditActivity.this, U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
+            }
+        });
+    }
 }

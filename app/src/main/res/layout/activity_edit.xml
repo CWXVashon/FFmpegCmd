@@ -93,7 +93,7 @@
                     android:drawableTop="@mipmap/selector_select"
                     android:onClick="cutBtn"
                     android:padding="@dimen/dp10"
-                    android:text="裁剪"
+                    android:text="区域"
                     android:textColor="@color/white" />
 
                 <TextView
@@ -103,6 +103,24 @@
                     android:onClick="timeBtn"
                     android:padding="@dimen/dp10"
                     android:text="时长"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:drawableTop="@mipmap/selector_select"
+                    android:onClick="invertedPlay"
+                    android:padding="@dimen/dp10"
+                    android:text="倒放"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:drawableTop="@mipmap/selector_select"
+                    android:onClick="picInPic"
+                    android:padding="@dimen/dp10"
+                    android:text="画中画"
                     android:textColor="@color/white" />
 
             </LinearLayout>

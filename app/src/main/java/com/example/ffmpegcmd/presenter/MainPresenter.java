@@ -5,7 +5,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.text.TextUtils;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -18,17 +17,17 @@ import com.example.ffmpegcmd.ffmpegjava.FFmpegCmd;
 import com.example.ffmpegcmd.ffmpegjava.FFmpegHandler;
 import com.example.ffmpegcmd.ui.iview.IMainView;
 import com.example.ffmpegcmd.util.FFmpegUtils;
-import com.example.ffmpegcmd.util.JsonUtils;
+import com.example.ffmpegcmd.util.FFmpegVideoUtils;
 import com.example.ffmpegcmd.util.FileUtils;
+import com.example.ffmpegcmd.util.JsonUtils;
 import com.example.ffmpegcmd.util.ThreadPoolExecutor;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+
+import x.com.log.ViseLog;
 
 /**
  * Created by Vashon on 2021/8/5.
@@ -141,6 +140,7 @@ public class MainPresenter extends BasePresenter<IMainView> {
 
     public void handleMedia(String name) {
         mOperateType = name;
+        ViseLog.d(name);
         switch (name) {
             case "视频编辑":
                 mView.gotoVideoEditActivity();
@@ -242,7 +242,7 @@ public class MainPresenter extends BasePresenter<IMainView> {
      */
     private void videoReverse(String sourceFilePath, String targetFilePath) {
         if (!FileUtils.isVideo(sourceFilePath) || TextUtils.isEmpty(targetFilePath)) return;
-        mFFmpegHandler.executeFFmpegCmd(FFmpegUtils.reverseVideo(sourceFilePath, targetFilePath));
+        mFFmpegHandler.executeFFmpegCmd(FFmpegVideoUtils.reverseVideo(sourceFilePath, targetFilePath));
     }
 
     // 将 assets 文件夹的测试文件保存在指定路径

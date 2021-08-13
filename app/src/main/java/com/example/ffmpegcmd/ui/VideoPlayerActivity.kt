@@ -1,11 +1,17 @@
 package com.example.ffmpegcmd.ui
 
+import android.view.LayoutInflater
+import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import com.example.ffmpegcmd.R
+import com.example.ffmpegcmd.databinding.IncludeCutBinding
+import com.example.ffmpegcmd.ui.widget.ChooseAreaView
+import com.example.ffmpegcmd.ui.widget.RangeSeekBarView
 import com.example.ffmpegcmd.util.CVPlayer2
 import com.xing.hhplayer.common.base.player.HHMediaPlayer
 import com.xing.hhplayer.common.bean.TvList.TvView
@@ -76,8 +82,17 @@ abstract class VideoPlayerActivity : AppCompatActivity() {
             player!!.setOnPreparedListener { o: Any? ->
                 panelEndTime?.text = V_time.formatTime(player!!.mediaDurationMS)
                 panelSeek?.max = player!!.mediaDurationMS.toInt()
+                initChooseUIWhenPrepare()
             }
         }
+    }
+
+    open fun initChooseUI() {
+
+    }
+
+    open fun initChooseUIWhenPrepare() {
+
     }
 
     fun startPlayer() {
@@ -91,6 +106,7 @@ abstract class VideoPlayerActivity : AppCompatActivity() {
                 player!!.prepare(path)
             }
             informationText?.text = tip
+            initChooseUI()
         }
     }
 

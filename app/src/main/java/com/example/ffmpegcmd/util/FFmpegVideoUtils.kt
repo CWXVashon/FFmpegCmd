@@ -24,6 +24,7 @@ object FFmpegVideoUtils {
 
     /**
      * 使用ffmpeg命令行进行视频剪切(不包含)
+     * 有问题，能生成视频，但视频很小，应该是没写入成功
      *
      * @param srcFile    源文件
      * @param startTime  剪切的开始时间(单位为毫秒)
@@ -62,4 +63,53 @@ object FFmpegVideoUtils {
 
     }
 
+    /**
+     * 视频反序倒播
+     *
+     * @param inputFile  输入文件
+     * @param targetFile 反序文件
+     * @return 视频反序的命令行
+     */
+    @JvmStatic
+    fun reverseVideo(inputFile: String?, targetFile: String?): Array<String?> {
+        var command = "ffmpeg -y -i %s -filter_complex [0:v]reverse[v] -map [v] %s" //单纯视频反序
+        command = String.format(command, inputFile, targetFile)
+        return command.split(" ").toTypedArray()
+    }
+
+    /**
+     * 视频反序倒播
+     *
+     * @param inputFile  输入文件
+     * @param targetFile 反序文件
+     * @return 视频反序的命令行
+     */
+    @JvmStatic
+    fun reverseAudioVideo(inputFile: String?, targetFile: String?): Array<String?> {
+        var command =
+            "ffmpeg -y -i %s -filter_complex [0:v]reverse[v];[0:a]reverse[a] -map [v] -map [a] %s"
+        command = String.format(command, inputFile, targetFile)
+        return command.split(" ").toTypedArray()
+    }
+
+    /**
+     * 视频叠加成画中画
+     *
+     * @param inputFile1 输入文件
+     * @param inputFile2 输入文件
+     * @param targetFile 输出文件
+     * @param x          小视频起点x坐标
+     * @param y          小视频起点y坐标
+     * @return 视频画中画的命令行
+     */
+    @SuppressLint("DefaultLocale")
+    @JvmStatic
+    fun picInPicVideo(
+        inputFile1: String?, inputFile2: String?, x: Int, y: Int,
+        targetFile: String?
+    ): Array<String?> {
+        var command = "ffmpeg -y -i %s -i %s -filter_complex overlay=%d:%d %s"
+        command = String.format(command, inputFile1, inputFile2, x, y, targetFile)
+        return command.split(" ").toTypedArray()
+    }
 }
