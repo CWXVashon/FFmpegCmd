@@ -36,7 +36,7 @@ Java_com_example_ffmpegcmd_mediaplayer_MediaPlayer_pause(JNIEnv *env, jobject th
 
 JNIEXPORT void JNICALL
 Java_com_example_ffmpegcmd_mediaplayer_MediaPlayer_setDataSource(JNIEnv *env, jobject thiz,
-                                                                 jstring path) {
+                                                                 jstring path, jobject surface) {
 }
 
 #ifdef __cplusplus

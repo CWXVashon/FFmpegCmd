@@ -8,6 +8,7 @@ import com.example.ffmpegcmd.util.ThreadPoolExecutor;
 
 import java.util.List;
 
+import x.com.base.toast.U_Toast;
 import x.com.log.ViseLog;
 
 /**
@@ -48,8 +49,11 @@ public class FFmpegCmd {
             public void run() {
                 if (handleListener != null) {
                     handleListener.onStart();
-                    ViseLog.d(runFFmpeg(commands));
-                    handleListener.onFinish();
+                    if (runFFmpeg(commands) == 0) {
+                        handleListener.onFinish();
+                    } else {
+                        U_Toast.show("失败，返回1");
+                    }
                 }
                 mListener = null;
             }

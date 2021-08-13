@@ -31,9 +31,9 @@
 
         <Button
             android:id="@+id/exportBtn"
-            android:onClick="exportVideo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:onClick="exportVideo"
             android:text="导出" />
     </LinearLayout>
 
@@ -65,8 +65,8 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_gravity="center"
-        android:layout_weight="1"
         android:layout_marginBottom="@dimen/dp10"
+        android:layout_weight="1"
         android:background="#ff202020" />
 
     <LinearLayout
@@ -96,7 +96,22 @@
                     android:text="裁剪"
                     android:textColor="@color/white" />
 
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:drawableTop="@mipmap/selector_select"
+                    android:onClick="timeBtn"
+                    android:padding="@dimen/dp10"
+                    android:text="时长"
+                    android:textColor="@color/white" />
+
             </LinearLayout>
         </HorizontalScrollView>
+
+        <FrameLayout
+            android:id="@+id/cutLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
     </LinearLayout>
 </LinearLayout>
