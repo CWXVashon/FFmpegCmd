@@ -1,17 +1,11 @@
 package com.example.ffmpegcmd.ui
 
-import android.view.LayoutInflater
-import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import com.example.ffmpegcmd.R
-import com.example.ffmpegcmd.databinding.IncludeCutBinding
-import com.example.ffmpegcmd.ui.widget.ChooseAreaView
-import com.example.ffmpegcmd.ui.widget.RangeSeekBarView
 import com.example.ffmpegcmd.util.CVPlayer2
 import com.xing.hhplayer.common.base.player.HHMediaPlayer
 import com.xing.hhplayer.common.bean.TvList.TvView
@@ -24,7 +18,7 @@ abstract class VideoPlayerActivity : AppCompatActivity() {
     var player: CVPlayer2? = null
 
     @JvmField
-    var fileBean: FileBean? = null
+    var videoBean: FileBean? = null
 
     @JvmField
     var tip: String? = null
@@ -100,8 +94,8 @@ abstract class VideoPlayerActivity : AppCompatActivity() {
             player!!.start()
         } else {
             player!!.reset()
-            if (fileBean != null) {
-                player!!.prepare(fileBean?.filePathUri)
+            if (videoBean != null) {
+                player!!.prepare(videoBean?.filePathUri)
             } else {
                 player!!.prepare(path)
             }

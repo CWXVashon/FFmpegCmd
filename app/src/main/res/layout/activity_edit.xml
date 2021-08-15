@@ -123,13 +123,31 @@
                     android:text="画中画"
                     android:textColor="@color/white" />
 
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:drawableTop="@mipmap/selector_select"
+                    android:onClick="removeWaterLogo"
+                    android:padding="@dimen/dp10"
+                    android:text="去水印"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:drawableTop="@mipmap/selector_select"
+                    android:onClick="addVideoThumb"
+                    android:padding="@dimen/dp10"
+                    android:text="添加封面"
+                    android:textColor="@color/white" />
+
             </LinearLayout>
         </HorizontalScrollView>
 
         <FrameLayout
             android:id="@+id/cutLayout"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content" />
 
     </LinearLayout>
 </LinearLayout>

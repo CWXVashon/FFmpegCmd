@@ -20,8 +20,10 @@ import com.example.ffmpegcmd.util.FFmpegVideoUtils;
 
 import x.com.base.toast.U_Toast;
 import x.com.dialog.CProgressDialog;
+import x.com.fliepick.bean.FileBean;
 import x.com.fliepick.media.CMediaPickDialog;
 import x.com.log.ViseLog;
+import x.com.media.U_media;
 import x.com.rxHttp.task.TaskDelayManager;
 import x.com.util.U_file;
 import x.com.util.U_time;
@@ -32,6 +34,7 @@ public class VideoEditActivity extends VideoPlayerActivity {
     private ChooseAreaView areaView;
     private CProgressDialog progressDialog;
     private long leftTimeMs, rightTimeMs;
+    private FileBean imgBean;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -44,18 +47,21 @@ public class VideoEditActivity extends VideoPlayerActivity {
         informationText = binding.informationText;
         playBtn = binding.playBtn;
         initPlayerUI();
-        binding.selectImgBtn.setOnClickListener(v -> CMediaPickDialog.builder().setOnSingleListener(fileBean -> ViseLog.d(fileBean)).startSelectImg(this));
+        binding.selectImgBtn.setOnClickListener(v -> CMediaPickDialog.builder().setNeedPreview(false).setOnSingleListener(fileBean -> {
+            ViseLog.d(fileBean);
+            this.imgBean = fileBean;
+        }).startSelectImg(this));
         binding.selectMusicBtn.setOnClickListener(v -> CMediaPickDialog.builder().setNeedPreview(false).setOnSingleListener(fileBean1 -> {
             ViseLog.d(fileBean1);
             initPlayer(binding.playerLayout);
-            this.fileBean = fileBean1;
+            this.videoBean = fileBean1;
             tip = "音频：" + fileBean1.getFileName();
             startPlayer();
         }).startSelectMusic(this));
         binding.selectVideBtn.setOnClickListener(v -> CMediaPickDialog.builder().setNeedPreview(false).setShowCamera(false).setOnSingleListener(fileBean1 -> {
             ViseLog.d(fileBean1);
             initPlayer(binding.playerLayout);
-            this.fileBean = fileBean1;
+            this.videoBean = fileBean1;
             tip = "视频：" + fileBean1.getFileName() + " 宽高：" + fileBean1.getVideoFileBean().getVWidth() + "x" + fileBean1.getVideoFileBean().getVHeight();
             startPlayer();
         }).startSelectVideo(this));
@@ -88,9 +94,9 @@ public class VideoEditActivity extends VideoPlayerActivity {
         cutView.setTag("cutView");
         RangeSeekBarView seekBar = cutView.findViewById(R.id.avt_seekBar);
         seekBar.setAbsoluteMinValuePrim(0);
-        seekBar.setAbsoluteMaxValuePrim(fileBean.getVideoFileBean().getMediaDuration());
+        seekBar.setAbsoluteMaxValuePrim(videoBean.getVideoFileBean().getMediaDuration());
         seekBar.setSelectedMinValue(0L);
-        seekBar.setSelectedMaxValue(fileBean.getVideoFileBean().getMediaDuration());
+        seekBar.setSelectedMaxValue(videoBean.getVideoFileBean().getMediaDuration());
         seekBar.setMin_cut_time(3);//设置最小裁剪时间
         seekBar.setNotifyWhileDragging(true);
         seekBar.setOnRangeSeekBarChangeListener(mOnRangeSeekBarChangeListener);
@@ -101,12 +107,12 @@ public class VideoEditActivity extends VideoPlayerActivity {
 
     public void cutBtn(View view) {
         //选取框取出来的是比例，要和视频宽高相乘得到实际的宽高数据
-        float left = (areaView.getResultF()[0] * fileBean.getVideoFileBean().getVWidth());
-        float top = (areaView.getResultF()[1] * fileBean.getVideoFileBean().getVHeight());
-        float width = (areaView.getResultF()[2] - areaView.getResultF()[0]) * fileBean.getVideoFileBean().getVWidth();
-        float height = (areaView.getResultF()[3] - areaView.getResultF()[1]) * fileBean.getVideoFileBean().getVHeight();
+        float left = (areaView.getResultF()[0] * videoBean.getVideoFileBean().getVWidth());
+        float top = (areaView.getResultF()[1] * videoBean.getVideoFileBean().getVHeight());
+        float width = (areaView.getResultF()[2] - areaView.getResultF()[0]) * videoBean.getVideoFileBean().getVWidth();
+        float height = (areaView.getResultF()[3] - areaView.getResultF()[1]) * videoBean.getVideoFileBean().getVHeight();
 
-        String[] cmd = FFmpegVideoUtils.cutVideoArea(fileBean.getFilePath(),
+        String[] cmd = FFmpegVideoUtils.cutVideoArea(videoBean.getFilePath(),
                 width, height, left, top, U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
         runFFmpeg(cmd);
     }
@@ -118,7 +124,6 @@ public class VideoEditActivity extends VideoPlayerActivity {
         FFmpegCmd.getInstance().executeFFmpeg(cmd, new OnHandleListener() {
             @Override
             public void onStart() {
-                U_Toast.show("开始");
             }
 
             @Override
@@ -129,16 +134,17 @@ public class VideoEditActivity extends VideoPlayerActivity {
             @Override
             public void onProgress(int position, int duration) {
                 progressDialog.showProgress(position);
+                ViseLog.showLog(position + " " + duration);
                 if (position == 100) {
                     progressDialog.dismiss();
                 }
-                ViseLog.showLog(position + " " + duration);
             }
 
             @Override
             public void onFinish() {
                 progressDialog.dismiss();
                 U_Toast.show("完成 " + U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
+                U_media.updateMedia(VideoEditActivity.this, U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
                 PreviewActivity.start(VideoEditActivity.this, U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
             }
         });
@@ -150,37 +156,9 @@ public class VideoEditActivity extends VideoPlayerActivity {
     }
 
     public void timeBtn(View view) {
-        String[] cmd = FFmpegVideoUtils.cutVideoDurationWithFrame(fileBean.getFilePath(),
+        String[] cmd = FFmpegVideoUtils.cutVideoDurationWithFrame(videoBean.getFilePath(),
                 leftTimeMs, rightTimeMs - leftTimeMs, U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
-        ViseLog.d(cmd);
-        initProgress();
-        FFmpegCmd.getInstance().executeFFmpeg(cmd, new OnHandleListener() {
-            @Override
-            public void onStart() {
-                U_Toast.show("开始");
-            }
-
-            @Override
-            public void onMessage(String message) {
-                ViseLog.d(message);
-            }
-
-            @Override
-            public void onProgress(int position, int duration) {
-                progressDialog.showProgress(position);
-                if (position == 100) {
-                    progressDialog.dismiss();
-                }
-                ViseLog.showLog(position + " " + duration);
-            }
-
-            @Override
-            public void onFinish() {
-                progressDialog.dismiss();
-                U_Toast.show("完成 " + U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
-                PreviewActivity.start(VideoEditActivity.this, U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
-            }
-        });
+        runFFmpeg(cmd);
     }
 
     private long scrollPos;
@@ -223,72 +201,37 @@ public class VideoEditActivity extends VideoPlayerActivity {
 
     //倒放
     public void invertedPlay(View view) {
-        initProgress();
-        String[] cmd = FFmpegVideoUtils.reverseVideo(fileBean.getFilePath(), U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
-        FFmpegCmd.getInstance().executeFFmpeg(cmd, new OnHandleListener() {
-            @Override
-            public void onStart() {
-                U_Toast.show("开始");
-            }
-
-            @Override
-            public void onMessage(String message) {
-                ViseLog.d(message);
-            }
-
-            @Override
-            public void onProgress(int position, int duration) {
-                progressDialog.showProgress(position);
-                if (position == 100) {
-                    progressDialog.dismiss();
-                }
-                ViseLog.showLog(position + " " + duration);
-            }
-
-            @Override
-            public void onFinish() {
-                progressDialog.dismiss();
-                U_Toast.show("完成 " + U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
-                PreviewActivity.start(VideoEditActivity.this, U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
-            }
-        });
+        String[] cmd = FFmpegVideoUtils.reverseVideo(videoBean.getFilePath(), U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
+        runFFmpeg(cmd);
     }
 
     //画中画
     public void picInPic(View view) {
-        float left = (areaView.getResultF()[0] * fileBean.getVideoFileBean().getVWidth());
-        float top = (areaView.getResultF()[1] * fileBean.getVideoFileBean().getVHeight());
-        float width = (areaView.getResultF()[2] - areaView.getResultF()[0]) * fileBean.getVideoFileBean().getVWidth();
-        float height = (areaView.getResultF()[3] - areaView.getResultF()[1]) * fileBean.getVideoFileBean().getVHeight();
+        float left = (areaView.getResultF()[0] * videoBean.getVideoFileBean().getVWidth());
+        float top = (areaView.getResultF()[1] * videoBean.getVideoFileBean().getVHeight());
+        float width = (areaView.getResultF()[2] - areaView.getResultF()[0]) * videoBean.getVideoFileBean().getVWidth();
+        float height = (areaView.getResultF()[3] - areaView.getResultF()[1]) * videoBean.getVideoFileBean().getVHeight();
 
-        initProgress();
-        String[] cmd = FFmpegVideoUtils.picInPicVideo(fileBean.getFilePath(), fileBean.getFilePath(), (int) left, (int) top, U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
-        FFmpegCmd.getInstance().executeFFmpeg(cmd, new OnHandleListener() {
-            @Override
-            public void onStart() {
-                U_Toast.show("开始");
-            }
+        String[] cmd = FFmpegVideoUtils.picInPicVideo(videoBean.getFilePath(), videoBean.getFilePath(), (int) left, (int) top, U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
+        runFFmpeg(cmd);
+    }
 
-            @Override
-            public void onMessage(String message) {
-                ViseLog.d(message);
-            }
+    public void removeWaterLogo(View view) {
+        float left = (areaView.getResultF()[0] * videoBean.getVideoFileBean().getVWidth());
+        float top = (areaView.getResultF()[1] * videoBean.getVideoFileBean().getVHeight());
+        float width = (areaView.getResultF()[2] - areaView.getResultF()[0]) * videoBean.getVideoFileBean().getVWidth();
+        float height = (areaView.getResultF()[3] - areaView.getResultF()[1]) * videoBean.getVideoFileBean().getVHeight();
 
-            @Override
-            public void onProgress(int position, int duration) {
-                progressDialog.showProgress(position);
-                if (position == 100) {
-                    progressDialog.dismiss();
-                }
-                ViseLog.showLog(position + " " + duration);
-            }
+        String[] cmd = FFmpegVideoUtils.removeLogo(videoBean.getFilePath(), (int) left, (int) top, (int) width, (int) height, U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
+        runFFmpeg(cmd);
+    }
 
-            @Override
-            public void onFinish() {
-                progressDialog.dismiss();
-                U_Toast.show("完成 " + U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
-                PreviewActivity.start(VideoEditActivity.this, U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
-            }
-        });
+    public void addVideoThumb(View view) {
+        if (imgBean == null) {
+            U_Toast.show("请先选择图片");
+            return;
+        }
+        String[] cmd = FFmpegVideoUtils.insertPicIntoVideo(videoBean.getFilePath(),imgBean.getFilePath(), U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
+        runFFmpeg(cmd);
     }
 }

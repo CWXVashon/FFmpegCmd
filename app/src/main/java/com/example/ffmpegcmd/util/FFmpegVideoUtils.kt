@@ -1,6 +1,7 @@
 package com.example.ffmpegcmd.util
 
 import android.annotation.SuppressLint
+import java.util.*
 
 object FFmpegVideoUtils {
     /**
@@ -94,6 +95,7 @@ object FFmpegVideoUtils {
 
     /**
      * 视频叠加成画中画
+     * 如何设置画中画的大小？
      *
      * @param inputFile1 输入文件
      * @param inputFile2 输入文件
@@ -111,5 +113,59 @@ object FFmpegVideoUtils {
         var command = "ffmpeg -y -i %s -i %s -filter_complex overlay=%d:%d %s"
         command = String.format(command, inputFile1, inputFile2, x, y, targetFile)
         return command.split(" ").toTypedArray()
+    }
+
+    /**
+     * 去水印
+     *
+     * @param inputPath 输入文件
+     * @param targetFile 输出文件
+     * @param x          水印起点x坐标
+     * @param y          水印起点y坐标
+     * @param width          水印宽
+     * @param height          水印高
+     * @return 去水印后的视频
+     */
+    @JvmStatic
+    fun removeLogo(
+        inputPath: String?,
+        x: Int,
+        y: Int,
+        width: Int,
+        height: Int,
+        targetFile: String?
+    ): Array<String?>? {
+        var delogoCmd = "ffmpeg -i %s -filter_complex delogo=x=%d:y=%d:w=%d:h=%d %s"
+        delogoCmd = String.format(
+            Locale.getDefault(),
+            delogoCmd,
+            inputPath,
+            x,
+            y,
+            width,
+            height,
+            targetFile
+        )
+        return delogoCmd.split(" ".toRegex()).toTypedArray()
+    }
+
+    /**
+     * 添加视频封面
+     * 不支持heic格式图片
+     * @param inputPath inputFile
+     * @param picturePath the path of thumbnail
+     * @param outputPath targetFile
+     * @return command of inserting picture
+     */
+    @JvmStatic
+    fun insertPicIntoVideo(
+        inputPath: String,
+        picturePath: String,
+        outputPath: String
+    ): Array<String> {
+        var insertPicCmd =
+            "ffmpeg -i %s -i %s -map 0 -map 1 -c copy -c:v:1 png -disposition:v:1 attached_pic %s"
+        insertPicCmd = String.format(insertPicCmd, inputPath, picturePath, outputPath)
+        return insertPicCmd.split(" ".toRegex()).toTypedArray()
     }
 }
