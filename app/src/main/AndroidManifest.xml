@@ -34,7 +34,8 @@
             android:screenOrientation="portrait" />
         <activity android:name=".ui.TestActivity" />
         <activity android:name=".ui.VideoEditActivity" />
-        <activity android:name=".ui.PreviewActivity" />
+        <activity android:name=".ui.preview.VideoPreviewActivity" />
+        <activity android:name=".ui.preview.ImgPreviewActivity" />
     </application>
 
 </manifest>

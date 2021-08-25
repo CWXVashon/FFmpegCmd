@@ -18,6 +18,7 @@ public class TestBean {
     //输出文件名
     public static String outputMp4Name = "ff_" + U_time.getNowTimeLong() + ".mp4";
     public static String outputMp3Name = "ff_" + U_time.getNowTimeLong() + ".mp3";
+    public static String outputGifName = "ff_" + U_time.getNowTimeLong() + ".gif";
     public static String outputAACName = "ff_" + U_time.getNowTimeLong() + ".aac";
 
     //输出路径文件夹

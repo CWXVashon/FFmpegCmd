@@ -18,6 +18,7 @@ import com.example.ffmpegcmd.adapter.MainAdapterRV;
 import com.example.ffmpegcmd.databinding.ActivityMainBinding;
 import com.example.ffmpegcmd.presenter.MainPresenter;
 import com.example.ffmpegcmd.ui.iview.IMainView;
+import com.example.ffmpegcmd.ui.preview.VideoPreviewActivity;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -113,7 +114,7 @@ public class MainActivity extends AppCompatActivity implements IMainView {
 
     @Override
     public void gotoPreview(String path) {
-        PreviewActivity.start(this,path);
+        VideoPreviewActivity.start(this,path);
     }
 
     @Override

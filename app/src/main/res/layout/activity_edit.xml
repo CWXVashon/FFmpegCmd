@@ -138,7 +138,25 @@
                     android:drawableTop="@mipmap/selector_select"
                     android:onClick="addVideoThumb"
                     android:padding="@dimen/dp10"
-                    android:text="添加封面"
+                    android:text="封面"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:drawableTop="@mipmap/selector_select"
+                    android:onClick="toGif"
+                    android:padding="@dimen/dp10"
+                    android:text="GIF"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:drawableTop="@mipmap/selector_select"
+                    android:onClick="rotate"
+                    android:padding="@dimen/dp10"
+                    android:text="旋转"
                     android:textColor="@color/white" />
 
             </LinearLayout>

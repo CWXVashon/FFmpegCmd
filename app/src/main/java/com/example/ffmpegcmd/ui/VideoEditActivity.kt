@@ -1,237 +1,316 @@
-package com.example.ffmpegcmd.ui;
+package com.example.ffmpegcmd.ui
 
-import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.MotionEvent;
-import android.view.View;
-import android.widget.FrameLayout;
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.MotionEvent
+import android.view.View
+import android.widget.FrameLayout
+import com.example.ffmpegcmd.R
+import com.example.ffmpegcmd.bean.TestBean
+import com.example.ffmpegcmd.databinding.ActivityEditBinding
+import com.example.ffmpegcmd.databinding.IncludeCutBinding
+import com.example.ffmpegcmd.ffmpegjava.FFmpegCmd
+import com.example.ffmpegcmd.ffmpegjava.OnHandleListener
+import com.example.ffmpegcmd.ui.preview.ImgPreviewActivity
+import com.example.ffmpegcmd.ui.preview.VideoPreviewActivity
+import com.example.ffmpegcmd.ui.widget.ChooseAreaView
+import com.example.ffmpegcmd.ui.widget.RangeSeekBarView
+import com.example.ffmpegcmd.ui.widget.RangeSeekBarView.OnRangeSeekBarChangeListener
+import com.example.ffmpegcmd.util.FFmpegVideoUtils
+import x.com.base.toast.U_Toast
+import x.com.dialog.CProgressDialog
+import x.com.fliepick.bean.FileBean
+import x.com.fliepick.media.CMediaPickDialog
+import x.com.log.ViseLog
+import x.com.media.U_media
+import x.com.rxHttp.task.TaskDelayManager
+import x.com.util.U_file
+import x.com.util.U_time
 
-import androidx.annotation.Nullable;
-
-import com.example.ffmpegcmd.R;
-import com.example.ffmpegcmd.bean.TestBean;
-import com.example.ffmpegcmd.databinding.ActivityEditBinding;
-import com.example.ffmpegcmd.databinding.IncludeCutBinding;
-import com.example.ffmpegcmd.ffmpegjava.FFmpegCmd;
-import com.example.ffmpegcmd.ffmpegjava.OnHandleListener;
-import com.example.ffmpegcmd.ui.widget.ChooseAreaView;
-import com.example.ffmpegcmd.ui.widget.RangeSeekBarView;
-import com.example.ffmpegcmd.util.FFmpegVideoUtils;
-
-import x.com.base.toast.U_Toast;
-import x.com.dialog.CProgressDialog;
-import x.com.fliepick.bean.FileBean;
-import x.com.fliepick.media.CMediaPickDialog;
-import x.com.log.ViseLog;
-import x.com.media.U_media;
-import x.com.rxHttp.task.TaskDelayManager;
-import x.com.util.U_file;
-import x.com.util.U_time;
-
-public class VideoEditActivity extends VideoPlayerActivity {
-    ActivityEditBinding binding;
-    IncludeCutBinding cutBinding;
-    private ChooseAreaView areaView;
-    private CProgressDialog progressDialog;
-    private long leftTimeMs, rightTimeMs;
-    private FileBean imgBean;
-
-    @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        binding = ActivityEditBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
-        panelStartTime = binding.seekLayout.panelStartTime;
-        panelEndTime = binding.seekLayout.panelEndTime;
-        panelSeek = binding.seekLayout.panelSeek;
-        informationText = binding.informationText;
-        playBtn = binding.playBtn;
-        initPlayerUI();
-        binding.selectImgBtn.setOnClickListener(v -> CMediaPickDialog.builder().setNeedPreview(false).setOnSingleListener(fileBean -> {
-            ViseLog.d(fileBean);
-            this.imgBean = fileBean;
-        }).startSelectImg(this));
-        binding.selectMusicBtn.setOnClickListener(v -> CMediaPickDialog.builder().setNeedPreview(false).setOnSingleListener(fileBean1 -> {
-            ViseLog.d(fileBean1);
-            initPlayer(binding.playerLayout);
-            this.videoBean = fileBean1;
-            tip = "音频：" + fileBean1.getFileName();
-            startPlayer();
-        }).startSelectMusic(this));
-        binding.selectVideBtn.setOnClickListener(v -> CMediaPickDialog.builder().setNeedPreview(false).setShowCamera(false).setOnSingleListener(fileBean1 -> {
-            ViseLog.d(fileBean1);
-            initPlayer(binding.playerLayout);
-            this.videoBean = fileBean1;
-            tip = "视频：" + fileBean1.getFileName() + " 宽高：" + fileBean1.getVideoFileBean().getVWidth() + "x" + fileBean1.getVideoFileBean().getVHeight();
-            startPlayer();
-        }).startSelectVideo(this));
+class VideoEditActivity : VideoPlayerActivity() {
+    private var binding: ActivityEditBinding? = null
+    var cutBinding: IncludeCutBinding? = null
+    private var areaView: ChooseAreaView? = null
+    private var progressDialog: CProgressDialog? = null
+    private var leftTimeMs: Long = 0
+    private var rightTimeMs: Long = 0
+    private var imgBean: FileBean? = null
+    private val outputMP4 = U_file.DOWNLOADS + "/" + TestBean.outputMp4Name
+    private val outputMP3 = U_file.DOWNLOADS + "/" + TestBean.outputMp3Name
+    private val outputGIF = U_file.DOWNLOADS + "/" + TestBean.outputGifName
+    private var inputFile: String? = ""
+    private var isRunning = false
+    private var type = 1//1视频2音频3图片
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding = ActivityEditBinding.inflate(layoutInflater)
+        setContentView(binding!!.root)
+        panelStartTime = binding!!.seekLayout.panelStartTime
+        panelEndTime = binding!!.seekLayout.panelEndTime
+        panelSeek = binding!!.seekLayout.panelSeek
+        informationText = binding!!.informationText
+        playBtn = binding!!.playBtn
+        initPlayerUI()
+        binding!!.selectImgBtn.setOnClickListener { v: View? ->
+            CMediaPickDialog.builder().setNeedPreview(false)
+                .setOnSingleListener { fileBean: FileBean? ->
+                    ViseLog.d(fileBean)
+                    imgBean = fileBean
+                }.startSelectImg(this)
+        }
+        binding!!.selectMusicBtn.setOnClickListener { v: View? ->
+            CMediaPickDialog.builder().setNeedPreview(false)
+                .setOnSingleListener { fileBean1: FileBean ->
+                    ViseLog.d(fileBean1)
+                    initPlayer(binding!!.playerLayout)
+                    videoBean = fileBean1
+                    tip = "音频：" + fileBean1.fileName
+                    startPlayer()
+                }.startSelectMusic(this)
+        }
+        binding!!.selectVideBtn.setOnClickListener { v: View? ->
+            CMediaPickDialog.builder().setNeedPreview(false).setShowCamera(false)
+                .setOnSingleListener { fileBean1: FileBean ->
+                    ViseLog.d(fileBean1)
+                    initPlayer(binding!!.playerLayout)
+                    if (U_file.copyVideoToMovie(this, fileBean1.filePath)) videoBean = fileBean1
+                    tip =
+                        "视频：" + fileBean1.fileName + " 宽高：" + fileBean1.videoFileBean!!.vWidth + "x" + fileBean1.videoFileBean!!.vHeight
+                    startPlayer()
+                }.startSelectVideo(this)
+        }
     }
 
-    private void initProgress() {
-        progressDialog = new CProgressDialog("执行中");
-        progressDialog.showDialog(this);
+    private fun initProgress() {
+        progressDialog = CProgressDialog("执行中")
+        progressDialog!!.showDialog(this)
     }
 
-    @Override
-    public void initChooseUIWhenPrepare() {
-        new TaskDelayManager() {
-            @Override
-            public void onListen(Long index) {
-                player.removeExtraView(areaView);
-                areaView = new ChooseAreaView(VideoEditActivity.this);
-                player.addExtraView(areaView);
-                View playView = player.getPlayerView().findViewById(R.id.video_normal_id);
-                areaView.setLayoutSize(playView.getWidth(), playView.getHeight());
+    override fun initChooseUIWhenPrepare() {
+        object : TaskDelayManager() {
+            override fun onListen(index: Long) {
+                player?.removeExtraView(areaView)
+                areaView = ChooseAreaView(this@VideoEditActivity)
+                player?.addExtraView(areaView)
+                val playView = player?.getPlayerView()?.findViewById<View>(R.id.video_normal_id)
+                areaView?.setLayoutSize(playView!!.width, playView.height)
             }
-        }.delay(200);
-
+        }.delay(200)
     }
 
-    @Override
-    public void initChooseUI() {
-        binding.cutLayout.removeAllViews();
-        View cutView = LayoutInflater.from(this).inflate(R.layout.include_cut, null);
-        cutView.setTag("cutView");
-        RangeSeekBarView seekBar = cutView.findViewById(R.id.avt_seekBar);
-        seekBar.setAbsoluteMinValuePrim(0);
-        seekBar.setAbsoluteMaxValuePrim(videoBean.getVideoFileBean().getMediaDuration());
-        seekBar.setSelectedMinValue(0L);
-        seekBar.setSelectedMaxValue(videoBean.getVideoFileBean().getMediaDuration());
-        seekBar.setMin_cut_time(3);//设置最小裁剪时间
-        seekBar.setNotifyWhileDragging(true);
-        seekBar.setOnRangeSeekBarChangeListener(mOnRangeSeekBarChangeListener);
-        binding.cutLayout.addView(cutView, FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT);
-        cutBinding = IncludeCutBinding.bind(cutView);
-
+    override fun initChooseUI() {
+        binding!!.cutLayout.removeAllViews()
+        val cutView = LayoutInflater.from(this).inflate(R.layout.include_cut, null)
+        cutView.tag = "cutView"
+        val seekBar: RangeSeekBarView = cutView.findViewById(R.id.avt_seekBar)
+        seekBar.setAbsoluteMinValuePrim(0.0)
+        seekBar.setAbsoluteMaxValuePrim(videoBean!!.videoFileBean!!.mediaDuration.toDouble())
+        seekBar.selectedMinValue = 0L
+        seekBar.selectedMaxValue = videoBean!!.videoFileBean!!.mediaDuration
+        seekBar.setMin_cut_time(3) //设置最小裁剪时间
+        seekBar.isNotifyWhileDragging = true
+        seekBar.setOnRangeSeekBarChangeListener(mOnRangeSeekBarChangeListener)
+        binding!!.cutLayout.addView(
+            cutView,
+            FrameLayout.LayoutParams.MATCH_PARENT,
+            FrameLayout.LayoutParams.WRAP_CONTENT
+        )
+        cutBinding = IncludeCutBinding.bind(cutView)
     }
 
-    public void cutBtn(View view) {
+    //区域裁剪
+    fun cutBtn(view: View?) {
         //选取框取出来的是比例，要和视频宽高相乘得到实际的宽高数据
-        float left = (areaView.getResultF()[0] * videoBean.getVideoFileBean().getVWidth());
-        float top = (areaView.getResultF()[1] * videoBean.getVideoFileBean().getVHeight());
-        float width = (areaView.getResultF()[2] - areaView.getResultF()[0]) * videoBean.getVideoFileBean().getVWidth();
-        float height = (areaView.getResultF()[3] - areaView.getResultF()[1]) * videoBean.getVideoFileBean().getVHeight();
-
-        String[] cmd = FFmpegVideoUtils.cutVideoArea(videoBean.getFilePath(),
-                width, height, left, top, U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
-        runFFmpeg(cmd);
+        val left = areaView!!.resultF[0] * videoBean!!.videoFileBean!!.vWidth
+        val top = areaView!!.resultF[1] * videoBean!!.videoFileBean!!.vHeight
+        val width =
+            (areaView!!.resultF[2] - areaView!!.resultF[0]) * videoBean!!.videoFileBean!!.vWidth
+        val height =
+            (areaView!!.resultF[3] - areaView!!.resultF[1]) * videoBean!!.videoFileBean!!.vHeight
+        type = 1
+        dealCopyFile()
+        val cmd: Array<String> =
+            FFmpegVideoUtils.cutVideoArea(inputFile!!, width, height, left, top, outputMP4)
+        runFFmpeg(cmd)
     }
 
+    //复制文件到私有目录
+    private fun dealCopyFile() {
+        inputFile = U_file.getAppCacheFolder(this@VideoEditActivity)
+        if (!videoBean!!.filePath!!.startsWith(inputFile!!)) {
+            inputFile = inputFile + "/source/" + videoBean!!.fileName
+            U_file.copyFile(videoBean!!.filePath, inputFile, true)
+        } else {
+            inputFile = videoBean!!.filePath
+        }
+    }
 
-    public void runFFmpeg(String[] cmd) {
-        ViseLog.d(cmd);
-        initProgress();
-        FFmpegCmd.getInstance().executeFFmpeg(cmd, new OnHandleListener() {
-            @Override
-            public void onStart() {
+    private fun runFFmpeg(cmd: Array<String>) {
+        if (isRunning) {
+            return
+        } else isRunning = true
+        ViseLog.d(cmd)
+        initProgress()
+        FFmpegCmd.getInstance().executeFFmpeg(cmd, object : OnHandleListener {
+            override fun onStart() {}
+            override fun onMessage(message: String) {
+                ViseLog.d(message)
             }
 
-            @Override
-            public void onMessage(String message) {
-                ViseLog.d(message);
-            }
-
-            @Override
-            public void onProgress(int position, int duration) {
-                progressDialog.showProgress(position);
-                ViseLog.showLog(position + " " + duration);
+            override fun onProgress(position: Int, duration: Int) {
+                progressDialog!!.showProgress(position)
+                ViseLog.showLog("$position $duration")
                 if (position == 100) {
-                    progressDialog.dismiss();
+                    progressDialog!!.dismiss()
                 }
             }
 
-            @Override
-            public void onFinish() {
-                progressDialog.dismiss();
-                U_Toast.show("完成 " + U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
-                U_media.updateMedia(VideoEditActivity.this, U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
-                PreviewActivity.start(VideoEditActivity.this, U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
-            }
-        });
-    }
-
-    public void exportVideo(View view) {
-
-
-    }
-
-    public void timeBtn(View view) {
-        String[] cmd = FFmpegVideoUtils.cutVideoDurationWithFrame(videoBean.getFilePath(),
-                leftTimeMs, rightTimeMs - leftTimeMs, U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
-        runFFmpeg(cmd);
-    }
-
-    private long scrollPos;
-    private final RangeSeekBarView.OnRangeSeekBarChangeListener mOnRangeSeekBarChangeListener = new RangeSeekBarView.OnRangeSeekBarChangeListener() {
-        @Override//minValue左边值，maxValue右边值，action：1松开，2按下，pressedThumb min左边 ， max右边
-        public void onRangeSeekBarValuesChanged(RangeSeekBarView bar, long minValue, long maxValue, int action, boolean isMin, RangeSeekBarView.Thumb pressedThumb) {
-            ViseLog.showLog(minValue + " " + maxValue);
-            ViseLog.showLog(action + " " + isMin);
-            ViseLog.showLog(pressedThumb);
-            leftTimeMs = minValue + scrollPos;
-            rightTimeMs = maxValue + scrollPos;
-            switch (action) {
-                case MotionEvent.ACTION_DOWN:
-
-                    break;
-                case MotionEvent.ACTION_MOVE:
-//                    if (videoController != null) {
-//                        videoController.seekTo(pressedThumb == RangeSeekBarView.Thumb.MIN ? leftTimeMs : rightTimeMs);
-//                    }
-                    break;
-                case MotionEvent.ACTION_UP:
-                    //从minValue开始播
-//                    if (videoController != null) {
-//                        videoController.seekTo(leftTimeMs);
-//                        videoController.setPlayRange(leftTimeMs, rightTimeMs);
-//                        videoController.doStart();
-//                    }
-                    if (cutBinding != null) {
-                        cutBinding.avtLeftTime.setText(U_time.convertLongToTime(leftTimeMs, U_time.HH_mm_ss, "GMT"));
-                        cutBinding.avtRightTime.setText(U_time.convertLongToTime(rightTimeMs, U_time.HH_mm_ss, "GMT"));
-                        cutBinding.avtSelectTime.setText("已选择 " + (rightTimeMs / 1000 - leftTimeMs / 1000) + " 秒");
-                        ViseLog.d(leftTimeMs + " " + rightTimeMs);
+            override fun onFinish() {
+                isRunning = false
+                progressDialog!!.dismiss()
+                when (type) {
+                    1 -> {
+                        U_Toast.show("完成 $outputMP4")
+                        U_media.updateMedia(this@VideoEditActivity, outputMP4)
+                        VideoPreviewActivity.start(this@VideoEditActivity, outputMP4)
                     }
-                    break;
-                default:
-                    break;
+                    2 -> {
+                        U_Toast.show("完成 $outputMP3")
+                        U_media.updateMedia(this@VideoEditActivity, outputMP3)
+                        VideoPreviewActivity.start(this@VideoEditActivity, outputMP3)
+                    }
+                    3 -> {
+                        U_Toast.show("完成 $outputGIF")
+                        U_media.updateMedia(this@VideoEditActivity, outputGIF)
+                        ImgPreviewActivity.start(this@VideoEditActivity, outputGIF)
+                    }
+                }
+            }
+        })
+    }
+
+    fun exportVideo(view: View?) {}
+
+    //时长裁剪
+    fun timeBtn(view: View?) {
+        type = 1
+        dealCopyFile()
+        val cmd: Array<String> = FFmpegVideoUtils.cutVideoDurationWithFrame(
+            inputFile!!,
+            leftTimeMs, rightTimeMs - leftTimeMs, outputMP4
+        )
+        runFFmpeg(cmd)
+    }
+
+    private val scrollPos: Long = 0
+    private val mOnRangeSeekBarChangeListener =
+        OnRangeSeekBarChangeListener { bar, minValue, maxValue, action, isMin, pressedThumb ->
+
+            //minValue左边值，maxValue右边值，action：1松开，2按下，pressedThumb min左边 ， max右边
+            ViseLog.showLog("$minValue $maxValue")
+            ViseLog.showLog("$action $isMin")
+            ViseLog.showLog(pressedThumb)
+            leftTimeMs = minValue + scrollPos
+            rightTimeMs = maxValue + scrollPos
+            when (action) {
+                MotionEvent.ACTION_DOWN -> {
+                }
+                MotionEvent.ACTION_MOVE -> {
+                }
+                MotionEvent.ACTION_UP -> if (cutBinding != null) {
+                    cutBinding!!.avtLeftTime.text =
+                        U_time.convertLongToTime(leftTimeMs, U_time.HH_mm_ss, "GMT")
+                    cutBinding!!.avtRightTime.text =
+                        U_time.convertLongToTime(rightTimeMs, U_time.HH_mm_ss, "GMT")
+                    cutBinding!!.avtSelectTime.text =
+                        "已选择 " + (rightTimeMs / 1000 - leftTimeMs / 1000) + " 秒"
+                    ViseLog.d("$leftTimeMs $rightTimeMs")
+                }
+                else -> {
+                }
             }
         }
-    };
 
     //倒放
-    public void invertedPlay(View view) {
-        String[] cmd = FFmpegVideoUtils.reverseVideo(videoBean.getFilePath(), U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
-        runFFmpeg(cmd);
+    fun invertedPlay(view: View?) {
+        type = 1
+        dealCopyFile()
+        val cmd = FFmpegVideoUtils.reverseVideo(inputFile!!, outputMP4)
+        runFFmpeg(cmd)
     }
 
     //画中画
-    public void picInPic(View view) {
-        float left = (areaView.getResultF()[0] * videoBean.getVideoFileBean().getVWidth());
-        float top = (areaView.getResultF()[1] * videoBean.getVideoFileBean().getVHeight());
-        float width = (areaView.getResultF()[2] - areaView.getResultF()[0]) * videoBean.getVideoFileBean().getVWidth();
-        float height = (areaView.getResultF()[3] - areaView.getResultF()[1]) * videoBean.getVideoFileBean().getVHeight();
-
-        String[] cmd = FFmpegVideoUtils.picInPicVideo(videoBean.getFilePath(), videoBean.getFilePath(), (int) left, (int) top, U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
-        runFFmpeg(cmd);
+    fun picInPic(view: View?) {
+        type = 1
+        dealCopyFile()
+        val left = areaView!!.resultF[0] * videoBean!!.videoFileBean!!.vWidth
+        val top = areaView!!.resultF[1] * videoBean!!.videoFileBean!!.vHeight
+        val width =
+            (areaView!!.resultF[2] - areaView!!.resultF[0]) * videoBean!!.videoFileBean!!.vWidth
+        val height =
+            (areaView!!.resultF[3] - areaView!!.resultF[1]) * videoBean!!.videoFileBean!!.vHeight
+        val cmd = FFmpegVideoUtils.picInPicVideo(
+            inputFile!!,
+            inputFile!!,
+            left.toInt(),
+            top.toInt(),
+            outputMP4
+        )
+        runFFmpeg(cmd)
     }
 
-    public void removeWaterLogo(View view) {
-        float left = (areaView.getResultF()[0] * videoBean.getVideoFileBean().getVWidth());
-        float top = (areaView.getResultF()[1] * videoBean.getVideoFileBean().getVHeight());
-        float width = (areaView.getResultF()[2] - areaView.getResultF()[0]) * videoBean.getVideoFileBean().getVWidth();
-        float height = (areaView.getResultF()[3] - areaView.getResultF()[1]) * videoBean.getVideoFileBean().getVHeight();
-
-        String[] cmd = FFmpegVideoUtils.removeLogo(videoBean.getFilePath(), (int) left, (int) top, (int) width, (int) height, U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
-        runFFmpeg(cmd);
+    //去水印
+    fun removeWaterLogo(view: View?) {
+        type = 1
+        dealCopyFile()
+        val left = areaView!!.resultF[0] * videoBean!!.videoFileBean!!.vWidth
+        val top = areaView!!.resultF[1] * videoBean!!.videoFileBean!!.vHeight
+        val width =
+            (areaView!!.resultF[2] - areaView!!.resultF[0]) * videoBean!!.videoFileBean!!.vWidth
+        val height =
+            (areaView!!.resultF[3] - areaView!!.resultF[1]) * videoBean!!.videoFileBean!!.vHeight
+        val cmd = FFmpegVideoUtils.removeLogo(
+            inputFile!!,
+            left.toInt(),
+            top.toInt(),
+            width.toInt(),
+            height.toInt(),
+            outputMP4
+        )
+        runFFmpeg(cmd)
     }
 
-    public void addVideoThumb(View view) {
+    //添加视频封面
+    fun addVideoThumb(view: View?) {
         if (imgBean == null) {
-            U_Toast.show("请先选择图片");
-            return;
+            U_Toast.show("请先选择图片")
+            return
         }
-        String[] cmd = FFmpegVideoUtils.insertPicIntoVideo(videoBean.getFilePath(),imgBean.getFilePath(), U_file.DOWNLOADS + "/" + TestBean.outputMp4Name);
-        runFFmpeg(cmd);
+        type = 1
+        dealCopyFile()
+        val cmd: Array<String> =
+            FFmpegVideoUtils.insertPicIntoVideo(inputFile!!, imgBean!!.filePath!!, outputMP4)
+        runFFmpeg(cmd)
+    }
+
+    //转gif
+    fun toGif(view: View) {
+        type = 3
+        dealCopyFile()
+        val cmd: Array<String> =
+            FFmpegVideoUtils.video2Gif(
+                inputFile!!, 0,
+                videoBean!!.videoFileBean!!.mediaDuration.toInt(), outputGIF
+            )
+        runFFmpeg(cmd)
+    }
+
+    //视频旋转，失败
+    fun rotate(view: View) {
+        type = 1
+        dealCopyFile()
+        val cmd: Array<String> =
+            FFmpegVideoUtils.videoRotation(inputFile!!, 180, outputMP4)
+        runFFmpeg(cmd)
     }
 }

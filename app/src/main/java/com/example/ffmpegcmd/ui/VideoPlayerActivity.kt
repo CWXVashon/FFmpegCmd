@@ -6,16 +6,21 @@ import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import com.example.ffmpegcmd.util.CVPlayer2
-import com.xing.hhplayer.common.base.player.HHMediaPlayer
-import com.xing.hhplayer.common.bean.TvList.TvView
-import com.xing.hhplayer.common.bean.Type.PlayerState
-import com.xing.hhplayer.common.util.V_time
+import com.play.common.KVPlayer
+import com.play.common.base.listener.OnPlaySimpleListener
+import com.play.common.base.listener.OnPlayerListener
+import com.play.common.base.player.KMediaPlayer
+import com.play.common.bean.tvlist.TvView
+import com.play.common.bean.type.PlayerState
+import com.play.common.util.V_time
 import x.com.fliepick.bean.FileBean
+import x.com.util.U_permissions
+import x.com.util.U_permissions.RequestPermissionCallBack
+import x.com.util.U_time
 
 abstract class VideoPlayerActivity : AppCompatActivity() {
     @JvmField
-    var player: CVPlayer2? = null
+    var player: KVPlayer? = null
 
     @JvmField
     var videoBean: FileBean? = null
@@ -44,7 +49,7 @@ abstract class VideoPlayerActivity : AppCompatActivity() {
     fun initPlayerUI() {
         playBtn?.setOnClickListener {
             if (player == null) return@setOnClickListener
-            if (player!!.isPlaying) {
+            if (player!!.isPlaying()) {
                 pausePlayer()
             } else {
                 startPlayer()
@@ -60,24 +65,38 @@ abstract class VideoPlayerActivity : AppCompatActivity() {
             override fun onStartTrackingTouch(seekBar: SeekBar) {}
             override fun onStopTrackingTouch(seekBar: SeekBar) {}
         })
+
+        U_permissions.applyStoragePermission11(this, object : RequestPermissionCallBack {
+            override fun requestPermissionSuccess() {
+            }
+
+            override fun requestPermissionFail(failPermission: List<String>) {}
+        })
     }
 
     //先用个播放器做预览吧，后面再换
     fun initPlayer(playerLayout: FrameLayout?) {
         if (player == null) {
-            player = CVPlayer2(this, HHMediaPlayer(), TvView.NEWSURFACE, playerLayout)
-            player!!.setPlayWhenPrepared(true)
-            player!!.setOnProgressListener { time: Long ->
-                runOnUiThread {
-                    panelSeek?.progress = time.toString().toInt()
-                    panelStartTime?.text = V_time.formatTime(time)
+            player = KVPlayer(this, KMediaPlayer(), TvView.NEWSURFACE, playerLayout)
+            player?.setPlayWhenPrepared(true)
+            player?.setOnProgressListener(object : OnPlayerListener<Long> {
+                override fun onListen(time: Long) {
+                    runOnUiThread {
+                        panelSeek?.progress = time.toString().toInt()
+                        panelStartTime?.text = U_time.formatTime(time)
+                    }
                 }
-            }
-            player!!.setOnPreparedListener { o: Any? ->
-                panelEndTime?.text = V_time.formatTime(player!!.mediaDurationMS)
-                panelSeek?.max = player!!.mediaDurationMS.toInt()
-                initChooseUIWhenPrepare()
-            }
+
+            })
+
+            player?.setOnPreparedListener(object : OnPlaySimpleListener {
+                override fun onListen() {
+                    panelEndTime?.text = V_time.formatTime(player!!.getMediaDurationMS())
+                    panelSeek?.max = player!!.getMediaDurationMS().toInt()
+                    initChooseUIWhenPrepare()
+                }
+
+            })
         }
     }
 
@@ -90,14 +109,14 @@ abstract class VideoPlayerActivity : AppCompatActivity() {
     }
 
     fun startPlayer() {
-        if (player!!.playerState == PlayerState.PAUSE) {
-            player!!.start()
+        if (player?.getPlayState() == PlayerState.PAUSE) {
+            player?.start()
         } else {
-            player!!.reset()
+            player?.reset()
             if (videoBean != null) {
-                player!!.prepare(videoBean?.filePathUri)
+                player?.prepare(videoBean?.filePathUri!!)
             } else {
-                player!!.prepare(path)
+                player?.prepare(path!!)
             }
             informationText?.text = tip
             initChooseUI()

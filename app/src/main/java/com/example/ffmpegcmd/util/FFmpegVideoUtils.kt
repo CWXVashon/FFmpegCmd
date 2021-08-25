@@ -72,7 +72,7 @@ object FFmpegVideoUtils {
      * @return 视频反序的命令行
      */
     @JvmStatic
-    fun reverseVideo(inputFile: String?, targetFile: String?): Array<String?> {
+    fun reverseVideo(inputFile: String, targetFile: String): Array<String> {
         var command = "ffmpeg -y -i %s -filter_complex [0:v]reverse[v] -map [v] %s" //单纯视频反序
         command = String.format(command, inputFile, targetFile)
         return command.split(" ").toTypedArray()
@@ -86,7 +86,7 @@ object FFmpegVideoUtils {
      * @return 视频反序的命令行
      */
     @JvmStatic
-    fun reverseAudioVideo(inputFile: String?, targetFile: String?): Array<String?> {
+    fun reverseAudioVideo(inputFile: String, targetFile: String): Array<String> {
         var command =
             "ffmpeg -y -i %s -filter_complex [0:v]reverse[v];[0:a]reverse[a] -map [v] -map [a] %s"
         command = String.format(command, inputFile, targetFile)
@@ -107,9 +107,9 @@ object FFmpegVideoUtils {
     @SuppressLint("DefaultLocale")
     @JvmStatic
     fun picInPicVideo(
-        inputFile1: String?, inputFile2: String?, x: Int, y: Int,
-        targetFile: String?
-    ): Array<String?> {
+        inputFile1: String, inputFile2: String, x: Int, y: Int,
+        targetFile: String
+    ): Array<String> {
         var command = "ffmpeg -y -i %s -i %s -filter_complex overlay=%d:%d %s"
         command = String.format(command, inputFile1, inputFile2, x, y, targetFile)
         return command.split(" ").toTypedArray()
@@ -128,13 +128,13 @@ object FFmpegVideoUtils {
      */
     @JvmStatic
     fun removeLogo(
-        inputPath: String?,
+        inputPath: String,
         x: Int,
         y: Int,
         width: Int,
         height: Int,
-        targetFile: String?
-    ): Array<String?>? {
+        targetFile: String
+    ): Array<String> {
         var delogoCmd = "ffmpeg -i %s -filter_complex delogo=x=%d:y=%d:w=%d:h=%d %s"
         delogoCmd = String.format(
             Locale.getDefault(),
@@ -167,5 +167,43 @@ object FFmpegVideoUtils {
             "ffmpeg -i %s -i %s -map 0 -map 1 -c copy -c:v:1 png -disposition:v:1 attached_pic %s"
         insertPicCmd = String.format(insertPicCmd, inputPath, picturePath, outputPath)
         return insertPicCmd.split(" ".toRegex()).toTypedArray()
+    }
+
+    /**
+     * 使用ffmpeg命令行进行视频转成Gif动图
+     *
+     * @param srcFile    源文件
+     * @param startTime  开始时间
+     * @param duration   截取时长
+     * @param targetFile 目标文件
+     * @return Gif文件
+     */
+    @SuppressLint("DefaultLocale")
+    @JvmStatic
+    fun video2Gif(
+        srcFile: String,
+        startTime: Int,
+        duration: Int,
+        targetFile: String
+    ): Array<String> {
+        //String screenShotCmd = "ffmpeg -i %s -vframes %d -s 320x240 -f gif %s";
+        var command = "ffmpeg -y -i %s -ss %d -t %d -f gif %s"
+        command = String.format(command, srcFile, startTime, duration, targetFile)
+        return command.split(" ").toTypedArray() //以空格分割为字符串数组
+    }
+
+    /**
+     * 视频旋转
+     * @param srcFile 源文件
+     * @param targetFile 输出文件
+     * @param transpose
+     * @return 视频旋转命令行
+     */
+    @JvmStatic
+    fun videoRotation(srcFile: String, transpose: Int, targetFile: String): Array<String> {
+//        var command = "ffmpeg -y -i %s -vf transpose=%d -b:v 600k %s"//有问题
+        var command = "ffmpeg -y -i %s -metadata:s:v rotate=%d -codec copy %s"
+        command = String.format(Locale.CHINA, command, srcFile, transpose, targetFile)
+        return command.split(" ").toTypedArray()
     }
 }
